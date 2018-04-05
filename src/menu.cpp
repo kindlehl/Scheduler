@@ -9,6 +9,10 @@ Menu::Menu(){
 	//loadMenuFromFile(strcat(home,"/.schedule"));	//original call
 }
 
+Menu::operator bool() const{
+	return run;
+}
+
 void Menu::update(){
 	this->display();
 	wmove(stdscr, 0,0);			//move cursor to top, so text gets written over	
@@ -18,6 +22,12 @@ void Menu::update(){
 		down();
 	if(key == 'k')
 		up();
+	if(key == 'q')
+		Menu::exit();
+}
+
+void Menu::exit(){
+	run = false;
 }
 
 void Menu::loadMenuFromFile(std::string path = "~/.schedule"){
