@@ -1,5 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
+
 #include "menuitem.h"
 #include <iostream>
 #include <string>
@@ -9,11 +10,14 @@
 #include <fstream>
 #include <cstring>
 #include <cstdlib>
+#include <sstream>
+
 
 class Menu{
 	public:
-		Menu();
+		Menu() = delete;
 		Menu(const Menu& m) = delete;			
+		explicit Menu(std::string path);
 		bool operator<(const Menu& m);
 		operator bool() const;	
 		void add(MenuItem m);
@@ -24,8 +28,6 @@ class Menu{
 		void exit();	
 	private:
 		bool run = true;
-		void loadMenuFromFile(std::string path);
-		void print(std::string q, int drawFlags = A_NORMAL);
 		void display();
 		int selectIndex = 0;
 		std::vector<MenuItem> menu_items;
