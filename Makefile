@@ -3,6 +3,7 @@ NAME=Scheduler
 CC=g++ -std=c++14
 
 
+
 all: menuitem menu main
 	$(CC) menuitem.o menu.o main.o -lncurses -o  $(NAME) 
 main: src/main.cpp menuitem menu
