@@ -10,7 +10,7 @@ int main(){
 	Menu mainMenu;
 	for(int i = 0; i < 10; i++)	
 		mainMenu.add(MenuItem((i*12947)%10, "First Event of the Program", "This is a testing event"));
-	while(1)
+	while(mainMenu)
 		mainMenu.update();
 	endwin();
 	return 0;
