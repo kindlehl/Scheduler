@@ -1,5 +1,30 @@
 #include "../include/menu.h"
 
+
+static void print(std::string q, int drawFlags = A_NORMAL){
+	//iterates through the string, applying special effects and printing	
+	for(char c : q){
+		waddch(stdscr, c | drawFlags);
+	}
+}
+//initializes menu with a file
+Menu::Menu(std::string path){
+	std::ifstream file(path, std::ios_base::in);
+	if(!file){ //prints error message if filepath was invalid
+		print("ERROR LOADING FILE: ", A_BOLD);
+		print(path, A_BOLD);
+		print("\n");
+	}
+
+	//while more events exist
+	while(!file.eof()){
+		//add items line-by-line
+		menu_items.push_back(MenuItem(file));
+	}
+
+}
+
+/* This constructor was replaced by the file-reading constructor
 Menu::Menu(){
 
 	//std::cout << "BEGINNING CONSTRUCTION" << std::endl;
@@ -8,6 +33,7 @@ Menu::Menu(){
 	loadMenuFromFile("/home/hunter/.schedule");	//CHANGE THIS LATER TO GENERALIZE 
 	//loadMenuFromFile(strcat(home,"/.schedule"));	//original call
 }
+*/
 
 Menu::operator bool() const{
 	return run;
@@ -30,33 +56,7 @@ void Menu::exit(){
 	run = false;
 }
 
-void Menu::loadMenuFromFile(std::string path = "~/.schedule"){
-	std::ifstream file(path, std::ios_base::in);
-	if(!file.good()){
-		print("THERE WAS AN ERROR LOADING FILE: ", A_STANDOUT | A_BOLD);
-		print(path + "\n", A_STANDOUT | A_BOLD);
-		return;
-	}
 
-
-	//FILE FORMAT
-	//NAME`Description`PRIORITY
-	//NAME`DESCRIPTION`PRIORITY
-	std::string line;	
-	while(!file.eof()){
-		getline(file, line, '`');
-			
-	}
-
-
-}
-
-void Menu::print(std::string q, int drawFlags){
-	//iterates through the string, applying special effects and printing	
-	for(char c : q){
-		waddch(stdscr, c | drawFlags);
-	}
-}
 
 
 void Menu::printMenu(){
