@@ -25,6 +25,10 @@ Menu::Menu(std::string path){
 	getmaxyx(stdscr, height, width);
 }
 
+Menu::~Menu(){
+	
+}
+
 /* This constructor was replaced by the file-reading constructor
 Menu::Menu(){
 
@@ -59,7 +63,7 @@ void Menu::update(){
 
 void Menu::remove(){
 	//exclude this line when re-writing file
-	itemsToExclude.push_back(menu_items[selectIndex].ID);
+
 	//remove from menu
 	menu_items.erase(menu_items.begin()+selectIndex);
 }
