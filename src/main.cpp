@@ -8,9 +8,8 @@ int main(){
 	noecho();
 	keypad(stdscr, TRUE);
 	curs_set(0);
-	Menu mainMenu("/home/hunter/.schedule");
-//	for(int i = 0; i < 10; i++)	
-//		mainMenu.add(MenuItem((i*12947)%10, "First Event of the Program", "This is a testing event"));
+	string home = getenv("HOME");
+	Menu mainMenu(home + "/.schedule");
 	while(mainMenu)
 		mainMenu.update();
 	endwin();
