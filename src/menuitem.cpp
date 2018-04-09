@@ -1,13 +1,15 @@
 #include "../include/menuitem.h"
-
+int MenuItem::numMenus = 0;
 MenuItem::MenuItem() : m_priority(MAX_PRIORITY), m_description("No Description"), m_name("__blank__"){
 	selected = false;
-
+	//ID represents the line number in the file that this item represents
+	ID = numMenus++;
 }
 
 MenuItem::MenuItem(int priority, std::string description, std::string name)
 	: m_priority(priority), m_description(description), m_name(name){
 	selected = false;	
+	ID = numMenus++;
 }
 
 
@@ -36,6 +38,8 @@ MenuItem::MenuItem(std::istream& lineFromFile, char delim){
 	while(lineFromFile.peek() == ' ' || lineFromFile.peek() == '\n'){
 		lineFromFile.ignore();
 	}
+
+	ID = numMenus++;
 }
 
 bool MenuItem::active() const{

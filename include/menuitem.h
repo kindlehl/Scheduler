@@ -10,21 +10,24 @@
 class MenuItem{
 		
 	public:
+		explicit MenuItem(std::istream& , char delim = '|');
 		MenuItem();
 		MenuItem(int m_priority, std::string m_description, std::string m_name);
-		explicit MenuItem(std::istream& , char delim = '|');
 		MenuItem(const MenuItem &m);	
 		MenuItem& operator=(const MenuItem &m);
+		bool active() const;
 		bool operator<(const MenuItem& m);
+		int priority() const;
 		std::string name();
 		std::string description();
-		int priority() const;
-		bool active() const;
+		int ID;
 	private:
-		bool selected;
+		static int numMenus;
+		
 		int m_priority;
+		bool selected;
 		std::string m_description, m_name;
-
+		
 };
 
 #endif 
