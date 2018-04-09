@@ -62,10 +62,23 @@ void Menu::update(){
 }
 
 void Menu::remove(){
+	std::string home = getenv("HOME");
+
 	//exclude this line when re-writing file
+	std::fstream file(home + ".schedule", std::ios::in);
+	//read file to local buffer, excluding the deleted line
+	for(int i = 0; file; i++){
+		std::string line;
+/*		if(i != menu_item[selectIndex].ID)
+			//you were trying to figure out whether to delete right now or wait until destruction. Keep reading on catching signals, so you can write to the file before exiting no matter what.
+		std::getline(file, line);
+	*/
+	
+	}
 
 	//remove from menu
 	menu_items.erase(menu_items.begin()+selectIndex);
+	selectIndex = selectIndex >= menu_items.size() ? menu_items.size()-1 : selectIndex;
 }
 
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
@@ -144,12 +157,14 @@ void Menu::display(){
 }
 //change menu selection
 void Menu::up(){
+	if(selectIndex > 0)
 		selectIndex--;
 }
 
 
 //change menu selection
 void Menu::down(){
+	if(selectIndex+1 < menu_items.size())
 		selectIndex++;
 }
 
