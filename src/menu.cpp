@@ -1,6 +1,5 @@
 #include "../include/menu.h"
 
-bool Menu::run = true;
 
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
@@ -27,7 +26,7 @@ Menu::Menu(std::string path){
 		//add items line-by-line
 		menu_items.push_back(MenuItem(file));
 	}
-	//file.close();	
+	file.close();	
 	getmaxyx(stdscr, height, width);
 }
 
@@ -166,6 +165,9 @@ void Menu::down(){
 }
 
 void Menu::add(MenuItem new_item){
+	static std::string count = "";
+	count += "a";
+	print(std::string("one a per menu item in mem: ") + count);
 	menu_items.push_back(new_item);
 	sortMenu(*this);
 }
