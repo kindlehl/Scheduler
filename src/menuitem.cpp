@@ -60,7 +60,7 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 	return *this;
 }
 
-bool MenuItem::operator<(const MenuItem& m){
+bool MenuItem::operator<(const MenuItem& m)const{
 	return this->priority() < m.priority() ? false : true;		//used by std::sort 
 }
 

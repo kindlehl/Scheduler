@@ -16,7 +16,7 @@ class MenuItem{
 		MenuItem(const MenuItem &m);	
 		MenuItem& operator=(const MenuItem &m);
 		bool active() const;
-		bool operator<(const MenuItem& m);
+		bool operator<(const MenuItem& m) const;
 		int priority() const;
 		std::string name();
 		std::string description();
