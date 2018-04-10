@@ -33,7 +33,8 @@
 class Menu{
 	public:
 		Menu() = delete;
-		Menu(const Menu& m) = delete;			
+		Menu(const Menu& m) = delete;	
+		~Menu();
 		explicit Menu(std::string path);
 		bool operator<(const Menu& m);
 		operator bool() const;	
@@ -43,6 +44,7 @@ class Menu{
 		void view();
 		void remove();	
 		void update();
+		static void sortMenu(Menu& m);
 		void exit();	
 	private:
 		int width, height;

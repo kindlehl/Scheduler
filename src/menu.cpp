@@ -1,5 +1,9 @@
 #include "../include/menu.h"
 
+void Menu::sortMenu(Menu& m){
+	//sorts menu so that higher priority items show up first
+	std::stable_sort(m.menu_items.begin(), m.menu_items.end());
+}
 
 static void print(std::string q, int drawFlags = A_NORMAL){
 	//iterates through the string, applying special effects and printing	
@@ -78,6 +82,7 @@ void Menu::remove(){
 
 	//remove from menu
 	menu_items.erase(menu_items.begin()+selectIndex);
+	//select the position of the cursor - cant delete last element of list otherwise
 	selectIndex = selectIndex >= menu_items.size() ? menu_items.size()-1 : selectIndex;
 }
 
@@ -122,8 +127,6 @@ bool Menu::printField(std::string field, int spaces, char delimiter){
 }
 
 void Menu::printMenu(){
-	//sorts menu so that higher priority items show up first
-	std::sort(menu_items.begin(), menu_items.end());
 	//prints basic menu
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
 		if(item-menu_items.begin() == selectIndex){
@@ -170,6 +173,7 @@ void Menu::down(){
 
 void Menu::add(MenuItem new_item){
 	menu_items.push_back(new_item);
+	sortMenu(*this);
 }
 
 
