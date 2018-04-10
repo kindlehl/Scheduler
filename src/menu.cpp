@@ -1,5 +1,7 @@
 #include "../include/menu.h"
 
+bool Menu::run = true;
+
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
 	std::stable_sort(m.menu_items.begin(), m.menu_items.end());
@@ -25,12 +27,12 @@ Menu::Menu(std::string path){
 		//add items line-by-line
 		menu_items.push_back(MenuItem(file));
 	}
-	
+	//file.close();	
 	getmaxyx(stdscr, height, width);
 }
 
 Menu::~Menu(){
-	
+	exit(0);
 }
 
 /* This constructor was replaced by the file-reading constructor
@@ -58,7 +60,7 @@ void Menu::update(){
 	else if(key == 'k')
 		up();
 	else if(key == 'q')
-		Menu::exit();
+		run = false;
 	else if(key == 'v')
 		view();
 	else if(key == 'r')
@@ -66,30 +68,15 @@ void Menu::update(){
 }
 
 void Menu::remove(){
-	std::string home = getenv("HOME");
-
-	//exclude this line when re-writing file
-	std::fstream file(home + ".schedule", std::ios::in);
-	//read file to local buffer, excluding the deleted line
-	for(int i = 0; file; i++){
-		std::string line;
-/*		if(i != menu_item[selectIndex].ID)
-			//you were trying to figure out whether to delete right now or wait until destruction. Keep reading on catching signals, so you can write to the file before exiting no matter what.
-		std::getline(file, line);
-	*/
-	
-	}
-
-	//remove from menu
 	menu_items.erase(menu_items.begin()+selectIndex);
-	//select the position of the cursor - cant delete last element of list otherwise
+	//calculate where the arrow should appear
 	selectIndex = selectIndex >= menu_items.size() ? menu_items.size()-1 : selectIndex;
 }
 
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
 void Menu::view(){
 	//save screen to file and clear window
-	scr_dump(".tempscreen");
+	scr_dump(strcat(getenv("HOME"), "/.tempscreen"));
 	do{
 		move(0,0);
 		clrtobot();
@@ -101,11 +88,18 @@ void Menu::view(){
 	} while(getch() != 'q');
 	move(0,0);
 	clrtobot();
-	scr_restore(".tempscreen");
+	scr_restore(strcat(getenv("HOME"), "/.tempscreen"));
 }
 
-void Menu::exit(){
+//this function is called when destructing a menu and when a signal is caught.
+void Menu::exit(int sig){
 	run = false;
+	std::fstream file(strcat(getenv("HOME"), "/.schedule"), std::ios::out);
+	//write menu_items back to file, overwriting it
+	for(auto item : menu_items){
+		file << item.name() << "|" << item.description() << "|" << item.priority() << "\n";
+	}
+	file.close();
 }
 
 //Prints a string up to $spaces number of characters, ending with spaces if there is excess and an elipses "..." when there is not enough spaces

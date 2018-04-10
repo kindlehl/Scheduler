@@ -21,6 +21,7 @@
 #include "menuitem.h"
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <curses.h>
 #include <algorithm>
@@ -45,11 +46,11 @@ class Menu{
 		void remove();	
 		void update();
 		static void sortMenu(Menu& m);
-		void exit();	
+		void exit(int sig);	
+		static bool run;
 	private:
 		int width, height;
 		bool printField(std::string field, int spaces, char delimiter = ' ');
-		bool run = true;
 		void display();
 		int selectIndex = 0;
 		std::vector<MenuItem> menu_items;
