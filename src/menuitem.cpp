@@ -12,6 +12,9 @@ MenuItem::MenuItem(int priority, std::string description, std::string name)
 	ID = numMenus++;
 }
 
+bool allWhitespace(std::string str){
+	return std::all_of(str.begin(),str.end(),isspace);
+}
 
 /*FILE STRUCTURE
  * NAME|DESCRIPTION|PRIORITY
@@ -20,25 +23,26 @@ MenuItem::MenuItem(int priority, std::string description, std::string name)
  * Extracts 1 token per DATA MEMBER, discards remaining tokens
  */
 MenuItem::MenuItem(std::istream& lineFromFile, char delim){
+	std::string line;
+	std::getline(lineFromFile, line);
+	std::istringstream mystream(line);
 	//uses getline to extract tokens
 	std::string token;
 	//extract name	
-	std::getline(lineFromFile, token, delim);
+	std::getline(mystream, token, delim);
 	m_name = token;
 	//extract description
-	std::getline(lineFromFile, token, delim);
+	std::getline(mystream, token, delim);
 	m_description = token;
 	//extract priority level
-	std::getline(lineFromFile, token, delim);
+	std::getline(mystream, token, delim);
 	m_priority = atoi(token.c_str());
 	
 	selected = false;
 	//discard remaining bits of line
-	lineFromFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');	
-	while(lineFromFile.peek() == ' ' || lineFromFile.peek() == '\n'){
+	while(isspace(lineFromFile.peek())){
 		lineFromFile.ignore();
 	}
-
 	ID = numMenus++;
 }
 

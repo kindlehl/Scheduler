@@ -6,7 +6,8 @@
 #include <string>
 #include <iostream>
 #include <limits>
-
+#include <sstream>
+#include <algorithm>
 class MenuItem{
 		
 	public:
