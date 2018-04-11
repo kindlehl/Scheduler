@@ -1,5 +1,6 @@
 #include "../include/menu.h"
 
+bool Menu::run = true;
 
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
@@ -16,14 +17,16 @@ static void print(std::string q, int drawFlags = A_NORMAL){
 Menu::Menu(std::string path){
 	std::ifstream file(path, std::ios_base::in);
 	if(!file){ //prints error message if filepath was invalid
-		print("ERROR LOADING FILE: ", A_BOLD);
-		print(path, A_BOLD);
-		print("\n");
+		attrset(A_BOLD);
+		std::string errorMsg("ERROR LOADING FILE: ");
+		addnstr(errorMsg.c_str(), errorMsg.length());
+		addnstr((path + "\n").c_str(), path.length());
+		attroff(A_BOLD);
 	}
-
-	//while more events exist
-	while(!file.eof()){
-		//add items line-by-line
+	char next;	
+	//while more events exist, lol. I did this on purpose
+	while(!file.eof() && (next = file.peek()) && next  != (next == '\t' || next == '\n' || next == '\v')){
+		//add items linee-by-line
 		menu_items.push_back(MenuItem(file));
 	}
 	file.close();	
@@ -33,17 +36,6 @@ Menu::Menu(std::string path){
 Menu::~Menu(){
 	exit(0);
 }
-
-/* This constructor was replaced by the file-reading constructor
-Menu::Menu(){
-
-	//std::cout << "BEGINNING CONSTRUCTION" << std::endl;
-	//char* home = getenv("$HOME");		//THIS CAUSES PROGRAM TO HANG FOR SOME REASON
-	//print(strcat(home,"/.schedule"));
-	loadMenuFromFile("/home/hunter/.schedule");	//CHANGE THIS LATER TO GENERALIZE 
-	//loadMenuFromFile(strcat(home,"/.schedule"));	//original call
-}
-*/
 
 Menu::operator bool() const{
 	return run;
@@ -124,7 +116,7 @@ void Menu::printMenu(){
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
 		if(item-menu_items.begin() == selectIndex){
 			//print arrow indicating current item
-			print("->");
+			addnstr("->", 2);
 			attrset(A_STANDOUT);
 		}
 		else

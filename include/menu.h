@@ -29,6 +29,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <sstream>
+#include <set>
 
 
 class Menu{
@@ -47,9 +48,9 @@ class Menu{
 		void update();
 		static void sortMenu(Menu& m);
 		void exit(int sig);	
+		static bool run;
 	private:
 		int width, height;
-		bool run = true;
 		bool printField(std::string field, int spaces, char delimiter = ' ');
 		void display();
 		int selectIndex = 0;
