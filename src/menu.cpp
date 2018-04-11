@@ -41,12 +41,49 @@ Menu::operator bool() const{
 	return run;
 }
 
+void Menu::addItem(){
+	char* const path =strcat(getenv("HOME"), "/.schedule_add");
+	scr_dump(path);
+	move(0,0);
+	clrtobot();
+	addstr("Please Enter a Name for This Event:		");	
+	chtype c;
+	int startX = getcurx(stdscr), startY = getcury(stdscr);
+
+	while((c=getch()) && c != 4){
+		if(c == KEY_BACKSPACE){
+			int x = getcurx(stdscr),y = getcury(stdscr);
+			int maxX, maxY;
+			getmaxyx(stdscr, maxY, maxX);
+			if(x == 0){
+				x = maxX;
+				y--;
+			}else{
+				x--;
+			}
+
+			if(y == startY && x <= startX){//if cursor tries to delete the prompt text
+			}else{
+				move(y,x);
+				
+			}
+		}else{
+			addch(c);
+		}
+	}
+	scr_restore(path);
+}
+
 void Menu::update(){
 	this->display();
 	wmove(stdscr, 0,0);			//move cursor to top, so text gets written over	
 	wrefresh(stdscr);
 	chtype key = getch();
-	if(key == 'j')
+	if(key == 'r')
+		remove();
+	else if(key == 'a')
+		addItem();
+	else if(key == 'j')
 		down();
 	else if(key == 'k')
 		up();
@@ -54,8 +91,6 @@ void Menu::update(){
 		run = false;
 	else if(key == 'v')
 		view();
-	else if(key == 'r')
-		remove();
 }
 
 void Menu::remove(){
