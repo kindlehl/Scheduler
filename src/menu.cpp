@@ -1,41 +1,36 @@
 #include "../include/menu.h"
 
+//this file uses this set to catch special characters when reading input
+std::set<chtype> special = {KEY_DC, KEY_BACKSPACE};
+
+//initalization of static member
 bool Menu::run = true;
+
 void clearScreen(){
 	move(0,0);
 	clrtobot();
 }
+
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
 	std::stable_sort(m.menu_items.begin(), m.menu_items.end());
 }
 
-std::set<chtype> special = {KEY_DC, KEY_BACKSPACE};
 
-static void moveCursor(int& maxx, int& maxy, int& x, int& y, int startX, int startY, chtype c){
-	int newx = x, newy = y;
+static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c){
 	switch(c){
 		case(KEY_DC):
 			delch();
 			break;
 		case(KEY_BACKSPACE):
-			if(x == 0){
-				newx = maxx;
-				newy--;
-			}else{
-				newx--;
-			}
-
-			if(y == startY){//if cursor tries to delete the prompt text
-				if(x >= startX)	
-					mvdelch(newy,newx);
-				
-			}else if(y >= startY){
-				mvdelch(newy,newx);	
-			}else{
-				std::fstream debug("debug.txt", std::ios_base::out);
-				debug << "y,x,startY,startX -> " << y << ","<< x << ","<< startY << ","<<startX << std::endl;
-			}
+			//move cursor
+			x = (x == 0 && (y = y-1) >= 0) ? maxx-1 : x-1;
+			move(y, x);
+			if(y*maxx+x <= promptLen){
+				x = promptLen;
+				move(y, x);
+			}else{ delch(); }
+			refresh();
 			break;
 
 	}
@@ -78,26 +73,23 @@ void Menu::addItem(){
 	curs_set(1);	
 	char* const path =strcat(getenv("HOME"), "/.schedule_add");
 	scr_dump(path);
-	move(0,0);
-	clrtobot();
-	addstr("Please Enter a Name for This Event:		");	
+	clearScreen();
+	std::string namePrompt("Please Enter a Name for This Event: ");
+	addstr(namePrompt.c_str());	
 	chtype c;
-	int startX = getcurx(stdscr), startY = getcury(stdscr);
-	int x = getcurx(stdscr),y = getcury(stdscr);
-	int maxX, maxY;
-
-	getmaxyx(stdscr, maxY, maxX);
-	//handles all cursor moving and even deleting chars
-
-	while((c=getch()) && c != 4){
-		x = getcurx(stdscr),y = getcury(stdscr);
-		if(special.find(c) != special.end()){
-			//handles deletions and movements
-			moveCursor(maxX, maxY, x, y, startX, startY, c);	
-		}else{
+	std::string name;
+	do{
+		c = getch();
+		if(special.find(c) == special.end()){
+			name+=static_cast<char>(c);
 			addch(c);
+		}else{
+			handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr),	getcury(stdscr), namePrompt.length(), c);
 		}
-	}
+	} while(c != KEY_ENTER);
+
+
+
 	scr_restore(path);
 	curs_set(0);	
 }
