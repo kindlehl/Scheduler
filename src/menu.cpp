@@ -1,4 +1,7 @@
 #include "../include/menu.h"
+//must use global in main, since multiple calls to getenv() actually modify the value returned for some 
+//weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
+extern char* HOME;
 
 //this file uses this set to catch special characters when reading input
 std::set<chtype> special = {KEY_DC, KEY_BACKSPACE};
@@ -66,7 +69,6 @@ Menu::Menu(std::string path){
 }
 
 Menu::~Menu(){
-	exit(0);
 }
 
 Menu::operator bool() const{
@@ -75,7 +77,7 @@ Menu::operator bool() const{
 
 void Menu::addItem(){
 	curs_set(1);	
-	char* const path =strcat(getenv("HOME"), "/.schedule_add");
+	const char* path =(std::string(HOME)+ "/.schedule_add").c_str();
 	scr_dump(path);
 	chtype c;
 	std::vector<std::string> userPrompts = {"Please Enter a Priority Level for this Event: ",
@@ -99,11 +101,11 @@ void Menu::addItem(){
 		response.erase(response.length()-1);
 		responses.push_back(response);
 	}
+	//construct item and add to list
 	menu_items.push_back(MenuItem(stoi(responses[0]), responses[1], responses[2]));
 
 	scr_restore(path);
 	curs_set(0);	
-		
 }
 
 void Menu::update(){
@@ -120,7 +122,7 @@ void Menu::update(){
 	else if(key == 'k')
 		up();
 	else if(key == 'q')
-		run = false;
+		exit(0);
 	else if(key == 'v')
 		view();
 }
@@ -134,7 +136,7 @@ void Menu::remove(){
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
 void Menu::view(){
 	//save screen to file and clear window
-	scr_dump(strcat(getenv("HOME"), "/.tempscreen"));
+	scr_dump((std::string(HOME) + "/.schedule").c_str());
 	do{
 		clearScreen();
 		printField(menu_items[selectIndex].name(), width);
@@ -143,13 +145,13 @@ void Menu::view(){
 		addch('\n');
 	} while(getch() != 'q');
 	clearScreen();
-	scr_restore(strcat(getenv("HOME"), "/.tempscreen"));
+	scr_restore((std::string(HOME) + "/.schedule").c_str());
 }
 
 //this function is called when destructing a menu and when a signal is caught.
 void Menu::exit(int sig){
 	run = false;
-	std::fstream file(strcat(getenv("HOME"), "/.schedule"), std::ios::out);
+	std::fstream file(std::string(HOME) + "/.schedule", std::ios::out);
 	//write menu_items back to file, overwriting it
 	for(auto item : menu_items){
 		file << item.name() << "|" << item.description() << "|" << item.priority() << "\n";
