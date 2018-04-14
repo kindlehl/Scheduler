@@ -17,19 +17,23 @@ void Menu::sortMenu(Menu& m){
 }
 
 
-static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c){
+static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
 	switch(c){
 		case(KEY_DC):
 			delch();
 			break;
 		case(KEY_BACKSPACE):
-			//move cursor
+			//move cursor-most compact way to write... uses short-circuit evaluation to modify or keep the
+			//current value for y, while adjusting x to what it needs to be
 			x = (x == 0 && (y = y-1) >= 0) ? maxx-1 : x-1;
 			move(y, x);
 			if(y*maxx+x <= promptLen){
 				x = promptLen;
 				move(y, x);
-			}else{ delch(); }
+			}else{ 
+				delch(); 
+				str.erase(str.length()-1);
+			}
 			refresh();
 			break;
 
@@ -73,25 +77,33 @@ void Menu::addItem(){
 	curs_set(1);	
 	char* const path =strcat(getenv("HOME"), "/.schedule_add");
 	scr_dump(path);
-	clearScreen();
-	std::string namePrompt("Please Enter a Name for This Event: ");
-	addstr(namePrompt.c_str());	
 	chtype c;
-	std::string name;
-	do{
-		c = getch();
-		if(special.find(c) == special.end()){
-			name+=static_cast<char>(c);
-			addch(c);
-		}else{
-			handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr),	getcury(stdscr), namePrompt.length(), c);
-		}
-	} while(c != KEY_ENTER);
-
-
+	std::vector<std::string> userPrompts = {"Please Enter a Priority Level for this Event: ",
+		 								   "Please Enter a Description for This Event: ",
+											"Please Enter a Name for This Event: "
+										   };
+	std::vector<std::string> responses;
+	for( auto prompt : userPrompts ){
+		clearScreen();
+		addstr(prompt.c_str());	
+		std::string response;
+		do{
+			c = getch();
+			if(special.find(c) == special.end()){
+				response+=static_cast<char>(c);
+				addch(c);
+			}else{
+				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt.length(), c, response);
+			}
+		} while(c != 10);
+		response.erase(response.length()-1);
+		responses.push_back(response);
+	}
+	menu_items.push_back(MenuItem(stoi(responses[0]), responses[1], responses[2]));
 
 	scr_restore(path);
 	curs_set(0);	
+		
 }
 
 void Menu::update(){
