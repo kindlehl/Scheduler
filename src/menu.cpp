@@ -3,8 +3,8 @@
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
 extern char* HOME;
 
-//this file uses this set to catch special characters when reading input
-std::set<chtype> special = {KEY_DC, KEY_BACKSPACE};
+//used this set to catch special characters when reading input
+std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
 
 //initalization of static member
 bool Menu::run = true;
@@ -22,8 +22,25 @@ void Menu::sortMenu(Menu& m){
 
 static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
 	switch(c){
+		case(KEY_LEFT):
+			x -= (x != 0);
+			move(y,x);
+			break;
+		case(KEY_RIGHT):
+			x += (x != maxx);
+			move(y,x);
+			break;
+		case(KEY_UP):
+			y -= (y != 0);
+			move(y,x);
+			break;
+		case(KEY_DOWN):
+			y += (y != maxy);
+			move(y,x);
+			break;
 		case(KEY_DC):
 			delch();
+			str.erase(y*maxx+x - promptLen);
 			break;
 		case(KEY_BACKSPACE):
 			//move cursor-most compact way to write... uses short-circuit evaluation to modify or keep the
@@ -42,6 +59,7 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 
 	}
 }
+//there is a blank element when the .schedule file is empty. Investigate this next
 static void print(std::string q, int drawFlags = A_NORMAL){
 	//iterates through the string, applying special effects and printing	
 	for(char c : q){
@@ -102,6 +120,7 @@ void Menu::addItem(){
 		responses.push_back(response);
 	}
 	//construct item and add to list
+	
 	menu_items.push_back(MenuItem(stoi(responses[0]), responses[1], responses[2]));
 
 	scr_restore(path);
