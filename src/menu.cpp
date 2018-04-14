@@ -1,12 +1,45 @@
 #include "../include/menu.h"
 
 bool Menu::run = true;
-
+void clearScreen(){
+	move(0,0);
+	clrtobot();
+}
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
 	std::stable_sort(m.menu_items.begin(), m.menu_items.end());
 }
 
+std::set<chtype> special = {KEY_DC, KEY_BACKSPACE};
+
+static void moveCursor(int& maxx, int& maxy, int& x, int& y, int startX, int startY, chtype c){
+	int newx = x, newy = y;
+	switch(c){
+		case(KEY_DC):
+			delch();
+			break;
+		case(KEY_BACKSPACE):
+			if(x == 0){
+				newx = maxx;
+				newy--;
+			}else{
+				newx--;
+			}
+
+			if(y == startY){//if cursor tries to delete the prompt text
+				if(x >= startX)	
+					mvdelch(newy,newx);
+				
+			}else if(y >= startY){
+				mvdelch(newy,newx);	
+			}else{
+				std::fstream debug("debug.txt", std::ios_base::out);
+				debug << "y,x,startY,startX -> " << y << ","<< x << ","<< startY << ","<<startX << std::endl;
+			}
+			break;
+
+	}
+}
 static void print(std::string q, int drawFlags = A_NORMAL){
 	//iterates through the string, applying special effects and printing	
 	for(char c : q){
@@ -42,6 +75,7 @@ Menu::operator bool() const{
 }
 
 void Menu::addItem(){
+	curs_set(1);	
 	char* const path =strcat(getenv("HOME"), "/.schedule_add");
 	scr_dump(path);
 	move(0,0);
@@ -49,29 +83,23 @@ void Menu::addItem(){
 	addstr("Please Enter a Name for This Event:		");	
 	chtype c;
 	int startX = getcurx(stdscr), startY = getcury(stdscr);
+	int x = getcurx(stdscr),y = getcury(stdscr);
+	int maxX, maxY;
+
+	getmaxyx(stdscr, maxY, maxX);
+	//handles all cursor moving and even deleting chars
 
 	while((c=getch()) && c != 4){
-		if(c == KEY_BACKSPACE){
-			int x = getcurx(stdscr),y = getcury(stdscr);
-			int maxX, maxY;
-			getmaxyx(stdscr, maxY, maxX);
-			if(x == 0){
-				x = maxX;
-				y--;
-			}else{
-				x--;
-			}
-
-			if(y == startY && x <= startX){//if cursor tries to delete the prompt text
-			}else{
-				move(y,x);
-				
-			}
+		x = getcurx(stdscr),y = getcury(stdscr);
+		if(special.find(c) != special.end()){
+			//handles deletions and movements
+			moveCursor(maxX, maxY, x, y, startX, startY, c);	
 		}else{
 			addch(c);
 		}
 	}
 	scr_restore(path);
+	curs_set(0);	
 }
 
 void Menu::update(){
@@ -104,16 +132,13 @@ void Menu::view(){
 	//save screen to file and clear window
 	scr_dump(strcat(getenv("HOME"), "/.tempscreen"));
 	do{
-		move(0,0);
-		clrtobot();
-
+		clearScreen();
 		printField(menu_items[selectIndex].name(), width);
 		addch('\n');
 		printField(menu_items[selectIndex].description(), width);
 		addch('\n');
 	} while(getch() != 'q');
-	move(0,0);
-	clrtobot();
+	clearScreen();
 	scr_restore(strcat(getenv("HOME"), "/.tempscreen"));
 }
 
@@ -172,8 +197,7 @@ void Menu::printMenu(){
 void Menu::display(){
 	std::string msg = "This is a test message to see if I can reliably print stuff out into the screen. Thanks for being patient.\n";
 	//move cursor to top of window and erase all contents
-	move(0,0);
-	clrtobot();
+	clearScreen();
 	//print a message and the menu
 	print(msg);
 	printMenu();
