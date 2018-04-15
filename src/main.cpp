@@ -4,6 +4,8 @@
 #include <signal.h>
 #include <functional>
 
+char* HOME;
+
 using namespace std;
 
 void sigintHandler(int);
@@ -11,6 +13,7 @@ void sigintHandler(int);
 
 
 int main(){
+	HOME = getenv("HOME");
 	initscr();	
 	noecho();
 	keypad(stdscr, TRUE);
