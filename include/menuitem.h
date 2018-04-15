@@ -8,27 +8,30 @@
 #include <limits>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
+
 class MenuItem{
 		
 	public:
-		explicit MenuItem(std::istream& , char delim = '|');
 		MenuItem();
-		MenuItem(int m_priority, std::string m_description, std::string m_name);
 		MenuItem(const MenuItem &m);	
+		MenuItem(std::string m_description, std::string m_name,std::string date,  std::time_t eventTime);
 		MenuItem& operator=(const MenuItem &m);
+		
+		
 		bool active() const;
 		bool operator<(const MenuItem& m) const;
-		int priority() const;
-		std::string name();
-		std::string description();
+		explicit MenuItem(std::istream& , char delim = '|');
 		int ID;
+		std::string description();
+		std::string name();
+		int timeRemaining()const;
+		std::time_t eventTime;		
+		std::string dateString;
 	private:
-		static int numMenus;
-		
-		int m_priority;
 		bool selected;
+		static int numMenus;
 		std::string m_description, m_name;
-		
 };
 
 #endif 
