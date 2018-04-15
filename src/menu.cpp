@@ -80,6 +80,8 @@ Menu::Menu(std::string path){
 	//while more events exist, lol. I did this on purpose
 	while(!file.eof() && (next = file.peek()) && next  != (next == '\t' || next == '\n' || next == '\v')){
 		//add items linee-by-line
+		if(file.tellg() == 0)
+			break;
 		menu_items.push_back(MenuItem(file));
 	}
 	file.close();	
@@ -93,19 +95,38 @@ Menu::operator bool() const{
 	return run;
 }
 
+time_t createTime(std::string s, std::string regexp){
+	std::smatch matches;
+	std::regex_match(s, matches, std::regex(regexp));
+	std::tm t;
+	if(matches.size() == 6){
+		t.tm_mon = stoi(matches[1]);
+		t.tm_mday = stoi(matches[2]);
+		t.tm_year = stoi(matches[3]) + 100;
+		t.tm_hour = stoi(matches[4])-1;
+		t.tm_min = stoi(matches[5]);
+		return std::mktime(&t);
+	}else
+		return 0;
+}
+
 void Menu::addItem(){
 	curs_set(1);	
 	const char* path =(std::string(HOME)+ "/.schedule_add").c_str();
 	scr_dump(path);
 	chtype c;
-	std::vector<std::string> userPrompts = {"Please Enter a Priority Level for this Event: ",
-		 								   "Please Enter a Description for This Event: ",
-											"Please Enter a Name for This Event: "
-										   };
+	std::smatch matches;
+	std::vector<std::pair<std::string, std::regex> > userPrompts = {
+		{"Please Enter a Description for This Event: ", std::regex(".*") },
+		{"Please Enter a Name for This Event: ", std::regex(".*") },
+		{"Please Enter a Due Date (MM/DD/YY HH:MM): ", std::regex("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*")}	
+	};
+	auto prompt = userPrompts.begin();
+
 	std::vector<std::string> responses;
-	for( auto prompt : userPrompts ){
+	for( ; prompt != userPrompts.end(); prompt++ ){
 		clearScreen();
-		addstr(prompt.c_str());	
+		addstr(prompt->first.c_str());	
 		std::string response;
 		do{
 			c = getch();
@@ -113,15 +134,19 @@ void Menu::addItem(){
 				response+=static_cast<char>(c);
 				addch(c);
 			}else{
-				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt.length(), c, response);
+				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt->first.length(), c, response);
 			}
 		} while(c != 10);
 		response.erase(response.length()-1);
-		responses.push_back(response);
+		//if answer matches the prompt's format, add it to list of responses
+		if(regex_match(response, prompt->second))
+			responses.push_back(response);
+		else //try again
+			prompt--;
 	}
 	//construct item and add to list
-	
-	menu_items.push_back(MenuItem(stoi(responses[0]), responses[1], responses[2]));
+	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
+	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
 
 	scr_restore(path);
 	curs_set(0);	
@@ -173,7 +198,7 @@ void Menu::exit(int sig){
 	std::fstream file(std::string(HOME) + "/.schedule", std::ios::out);
 	//write menu_items back to file, overwriting it
 	for(auto item : menu_items){
-		file << item.name() << "|" << item.description() << "|" << item.priority() << "\n";
+		file << item.name() << "|" << item.description() << "|" << item.dateString << "|" << item.eventTime << "\n";
 	}
 	file.close();
 }
@@ -212,7 +237,7 @@ void Menu::printMenu(){
 		print("|");
 		printField(item->description(), DESC_SPACING);
 		print("|");
-		waddch(stdscr, item->priority()+48);			//this hack way of getting the priority as a one-string causes this to break on priority levels above 9
+		printField(item->dateString, DATE_SPACING);
 		print("|\n");
 		attroff(A_STANDOUT);
 	}

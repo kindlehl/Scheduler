@@ -8,13 +8,14 @@
 
 //the following definitions define how much space the windows take, relative to the window. Ensure that the following definitions add to one, or a runtime assertion will break the program.
 #define NAME_PORT .3f 
-#define DESC_PORT .69f
-#define PRIO_PORT .01f
+#define DESC_PORT .49f
+#define DATE_PORT .21f
 
 
 //these macros give the number of cells in the terminal that each piece of the menu should take up when printing. This way ensures that the program scales with window resizes.
 #define NAME_SPACING NAME_PORT*(width-USED_SPACE)
 #define DESC_SPACING DESC_PORT*(width-USED_SPACE)
+#define DATE_SPACING DATE_PORT*(width-USED_SPACE)
 
 
 
@@ -30,7 +31,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <set>
-
+#include <regex>
 
 class Menu{
 	public:
@@ -44,6 +45,7 @@ class Menu{
 		void up();
 		void down();
 		void view();
+		void addItem();
 		void remove();	
 		void update();
 		static void sortMenu(Menu& m);
