@@ -1,0 +1,14 @@
+src/*.o
+src/*.swp
+include/*.o
+include/*.swp
+*.swp
+*.o
+Session.vim
+.tempscreen
+compile*
+include/compile*
+src/compile*
+*test.cpp
+projectLog
+
