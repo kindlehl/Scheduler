@@ -1,4 +1,5 @@
 #include "../include/menuitem.h"
+//definition of numMenus static variable
 int MenuItem::numMenus = 0;
 
 bool allWhitespace(std::string str);
@@ -14,20 +15,7 @@ MenuItem::MenuItem(std::string description, std::string name, std::string date, 
 	ID = numMenus++;
 
 }
-/*THIS FUNCTION WAS DUPLICATED HERE. IT WAS ORIGINALLY DEFINED IN SRC/MENU.CPP
-*
-time_t createTime(std::string s, std::string regexp){
-	std::smatch matches;
-	std::regex_match(s, matches, std::regex(regexp));
-	std::tm t;
-		t.tm_mon = stoi(matches[1]);
-		t.tm_mday = stoi(matches[2]);
-		t.tm_year = stoi(matches[3]) + 100;
-		t.tm_hour = stoi(matches[4])-1;
-		t.tm_min = stoi(matches[5]);
-		return std::mktime(&t);
-}
-*/
+
 bool allWhitespace(std::string str){
 	return std::all_of(str.begin(),str.end(),isspace);
 }
@@ -39,7 +27,7 @@ bool allWhitespace(std::string str){
  * Extracts 1 token per DATA MEMBER, discards remaining tokens
  */
 MenuItem::MenuItem(std::istream& lineFromFile, char delim) : selected(false){
-	//reduce confusion
+	//reduce confusion without polluting the namespace
 	using std::string, std::getline, std::istringstream;
 	//grab line from file, construct stringstream from line
 	string line;
@@ -59,22 +47,6 @@ MenuItem::MenuItem(std::istream& lineFromFile, char delim) : selected(false){
 	dateString = token;	
 	//get internal date	
 	getline(mystream, token, delim);
-	if(token != ""){
-		eventTime = stoi(token);	
-		std::ofstream log("projectLog", std::ofstream::app);
-		log.width(50);
-		log << m_name << ": eventTime = ";
-		log.width(10);
-		log << eventTime << std::endl;
-	}
-	else
-		eventTime = 1;
-	//prune whitespace from file
-	while(isspace(lineFromFile.peek())){
-		lineFromFile.ignore();
-	}
-	//give unique ID
-	ID = numMenus++;
 }
 
 void MenuItem::setTime(std::time_t theTime){

@@ -94,29 +94,6 @@ Menu::~Menu(){
 Menu::operator bool() const{
 	return run;
 }
-
-time_t createTime(std::string s, std::string regexp){
-	std::smatch matches;
-	std::regex_match(s, matches, std::regex(regexp));
-	std::tm t;
-	std::ofstream log("projectLog", std::ofstream::trunc);
-	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1]);
-		log << "Month: " << t.tm_mon << std::endl;	
-		t.tm_mday = stoi(matches[2]);
-		log << "Day: " << t.tm_mday << std::endl;	
-		t.tm_year = stoi(matches[3]) + 100;
-		log << "Year: " << t.tm_year << std::endl;	
-		t.tm_hour = stoi(matches[4])-1;
-		log << "Hour: " << t.tm_hour << std::endl;	
-		t.tm_min = stoi(matches[5]);
-		log << "Minute: " << t.tm_min << std::endl;	
-		log << std::endl;
-		return std::mktime(&t);
-	}else
-		return 0;
-}
-
 void Menu::addItem(){
 	curs_set(1);	
 	const char* path =(std::string(HOME)+ "/.schedule_add").c_str();
