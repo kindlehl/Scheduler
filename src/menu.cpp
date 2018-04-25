@@ -49,7 +49,7 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			//current value for y, while adjusting x to what it needs to be
 			x = (x == 0 && (y = y-1) >= 0) ? maxx-1 : x-1;
 			move(y, x);
-			if(y*maxx+x <= promptLen){
+			if(y*maxx+x < promptLen){
 				x = promptLen;
 				move(y, x);
 			}else{ 
