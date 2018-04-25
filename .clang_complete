@@ -1,0 +1,34 @@
+[
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-std=c++14",
+            "-I/usr/include",
+            "src/menu.cpp"
+        ],
+        "directory": "/home/hunter/Projects/Scheduler",
+        "file": "src/menu.cpp"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-std=c++14",
+            "-I/usr/include",
+            "src/main.cpp"
+        ],
+        "directory": "/home/hunter/Projects/Scheduler",
+        "file": "src/main.cpp"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-std=c++14",
+            "src/menuitem.cpp"
+        ],
+        "directory": "/home/hunter/Projects/Scheduler",
+        "file": "src/menuitem.cpp"
+    }
+]

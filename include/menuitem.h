@@ -4,11 +4,13 @@
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 5
 #include <string>
+#include <regex>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <algorithm>
 #include <ctime>
+#include <fstream>
 
 class MenuItem{
 		
@@ -25,8 +27,9 @@ class MenuItem{
 		int ID;
 		std::string description();
 		std::string name();
-		int timeRemaining()const;
+		std::time_t timeRemaining()const;
 		std::time_t eventTime;		
+		void setTime(std::time_t);
 		std::string dateString;
 	private:
 		bool selected;

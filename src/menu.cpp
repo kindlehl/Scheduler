@@ -16,7 +16,9 @@ void clearScreen(){
 
 void Menu::sortMenu(Menu& m){
 	//sorts menu so that higher priority items show up first
-	std::stable_sort(m.menu_items.begin(), m.menu_items.end());
+	std::sort(m.menu_items.begin(), m.menu_items.end(), [](const MenuItem& left, const MenuItem& right){
+			return left.timeRemaining() < right.timeRemaining();
+		});
 }
 
 
@@ -80,8 +82,6 @@ Menu::Menu(std::string path){
 	//while more events exist, lol. I did this on purpose
 	while(!file.eof() && (next = file.peek()) && next  != (next == '\t' || next == '\n' || next == '\v')){
 		//add items linee-by-line
-		if(file.tellg() == 0)
-			break;
 		menu_items.push_back(MenuItem(file));
 	}
 	file.close();	
@@ -99,12 +99,19 @@ time_t createTime(std::string s, std::string regexp){
 	std::smatch matches;
 	std::regex_match(s, matches, std::regex(regexp));
 	std::tm t;
+	std::ofstream log("projectLog", std::ofstream::trunc);
 	if(matches.size() == 6){
 		t.tm_mon = stoi(matches[1]);
+		log << "Month: " << t.tm_mon << std::endl;	
 		t.tm_mday = stoi(matches[2]);
+		log << "Day: " << t.tm_mday << std::endl;	
 		t.tm_year = stoi(matches[3]) + 100;
+		log << "Year: " << t.tm_year << std::endl;	
 		t.tm_hour = stoi(matches[4])-1;
+		log << "Hour: " << t.tm_hour << std::endl;	
 		t.tm_min = stoi(matches[5]);
+		log << "Minute: " << t.tm_min << std::endl;	
+		log << std::endl;
 		return std::mktime(&t);
 	}else
 		return 0;
@@ -146,8 +153,9 @@ void Menu::addItem(){
 	}
 	//construct item and add to list
 	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
+	
 	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
-
+	sortMenu(*this);
 	scr_restore(path);
 	curs_set(0);	
 }
@@ -168,7 +176,7 @@ void Menu::update(){
 	else if(key == 'q')
 		exit(0);
 	else if(key == 'v')
-		view();
+		viewMenuItem();
 }
 
 void Menu::remove(){
@@ -178,7 +186,7 @@ void Menu::remove(){
 }
 
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
-void Menu::view(){
+void Menu::viewMenuItem(){
 	//save screen to file and clear window
 	scr_dump((std::string(HOME) + "/.schedule").c_str());
 	do{
@@ -186,6 +194,8 @@ void Menu::view(){
 		printField(menu_items[selectIndex].name(), width);
 		addch('\n');
 		printField(menu_items[selectIndex].description(), width);
+		addch('\n');
+		printField(std::to_string(menu_items[selectIndex].timeRemaining()), width); 
 		addch('\n');
 	} while(getch() != 'q');
 	clearScreen();
@@ -198,7 +208,7 @@ void Menu::exit(int sig){
 	std::fstream file(std::string(HOME) + "/.schedule", std::ios::out);
 	//write menu_items back to file, overwriting it
 	for(auto item : menu_items){
-		file << item.name() << "|" << item.description() << "|" << item.dateString << "|" << item.eventTime << "\n";
+			file << item.name() << "|" << item.description() << "|" << item.dateString << "|" << item.eventTime << "|\n";
 	}
 	file.close();
 }
@@ -206,7 +216,7 @@ void Menu::exit(int sig){
 //Prints a string up to $spaces number of characters, ending with spaces if there is excess and an elipses "..." when there is not enough spaces
 //
 //delimiter defaults to ' '
-bool Menu::printField(std::string field, int spaces, char delimiter){
+bool Menu::printField(std::string field, unsigned int spaces, char delimiter){
 	bool tooBig = false;
 	std::string ending = "..."; //used if field is longer than spaces
 	if(field.length() > spaces){
@@ -224,22 +234,24 @@ bool Menu::printField(std::string field, int spaces, char delimiter){
 void Menu::printMenu(){
 	//prints basic menu
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
-		if(item-menu_items.begin() == selectIndex){
+		if(item-menu_items.begin() == selectIndex && !menu_items.empty()){
 			//print arrow indicating current item
 			addnstr("->", 2);
 			attrset(A_STANDOUT);
 		}
 		else
-			//otherwise print spaces
-			print("  ");
+		//otherwise print spaces
+		print("  ");
 		//prints up to NAME_SPACING characters
 		printField(item->name(), NAME_SPACING);
 		print("|");
 		printField(item->description(), DESC_SPACING);
 		print("|");
 		printField(item->dateString, DATE_SPACING);
-		print("|\n");
+		//This line prints the number used to compare and sort the items of the menu
+		printField(std::to_string(static_cast<std::time_t>(item->timeRemaining())), DEBUG_SPACING);
 		attroff(A_STANDOUT);
+		addch('\n');
 	}
 	return;
 }
@@ -250,6 +262,7 @@ void Menu::display(){
 	clearScreen();
 	//print a message and the menu
 	print(msg);
+	sortMenu(*this);
 	printMenu();
 }
 //change menu selection

@@ -1,26 +1,39 @@
 #include "../include/menuitem.h"
 int MenuItem::numMenus = 0;
 
+bool allWhitespace(std::string str);
 //returns remaining time in minutes
-int MenuItem::timeRemaining() const{
+std::time_t MenuItem::timeRemaining() const{
 	std::time_t curr;
 	std::time(&curr);
-	return std::difftime(eventTime, curr)/60;
+	return std::difftime(eventTime, curr);
 }
 
 MenuItem::MenuItem(std::string description, std::string name, std::string date, std::time_t timing)
-	: m_description(description), m_name(name),eventTime(timing), dateString(date) {
-	selected = false;	
+	: eventTime(timing), dateString(date), selected(false), m_description(description), m_name(name){
 	ID = numMenus++;
 
 }
-
+/*THIS FUNCTION WAS DUPLICATED HERE. IT WAS ORIGINALLY DEFINED IN SRC/MENU.CPP
+*
+time_t createTime(std::string s, std::string regexp){
+	std::smatch matches;
+	std::regex_match(s, matches, std::regex(regexp));
+	std::tm t;
+		t.tm_mon = stoi(matches[1]);
+		t.tm_mday = stoi(matches[2]);
+		t.tm_year = stoi(matches[3]) + 100;
+		t.tm_hour = stoi(matches[4])-1;
+		t.tm_min = stoi(matches[5]);
+		return std::mktime(&t);
+}
+*/
 bool allWhitespace(std::string str){
 	return std::all_of(str.begin(),str.end(),isspace);
 }
 
 /*FILE STRUCTURE
- * NAME|DESCRIPTION|DATE|INTERNAL TIME
+ * NAME|DESCRIPTION|DATE|INTERNAL TIME|
  *
  * DESIRED BEHAVIOR
  * Extracts 1 token per DATA MEMBER, discards remaining tokens
@@ -46,7 +59,16 @@ MenuItem::MenuItem(std::istream& lineFromFile, char delim) : selected(false){
 	dateString = token;	
 	//get internal date	
 	getline(mystream, token, delim);
-	//eventTime = stoi(token);	
+	if(token != ""){
+		eventTime = stoi(token);	
+		std::ofstream log("projectLog", std::ofstream::app);
+		log.width(50);
+		log << m_name << ": eventTime = ";
+		log.width(10);
+		log << eventTime << std::endl;
+	}
+	else
+		eventTime = 1;
 	//prune whitespace from file
 	while(isspace(lineFromFile.peek())){
 		lineFromFile.ignore();
@@ -55,12 +77,16 @@ MenuItem::MenuItem(std::istream& lineFromFile, char delim) : selected(false){
 	ID = numMenus++;
 }
 
+void MenuItem::setTime(std::time_t theTime){
+	eventTime = theTime;
+}
+
 bool MenuItem::active() const{
 	return selected;
 }
 
 MenuItem::MenuItem(const MenuItem &m) 
-	:  m_description(m.m_description), m_name(m.m_name), eventTime(m.eventTime), dateString(m.dateString)
+	:  eventTime(m.eventTime), dateString(m.dateString), m_description(m.m_description), m_name(m.m_name) 
 {
 	selected = m.selected;	
 	ID = m.ID;
@@ -77,7 +103,7 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 }
 
 bool MenuItem::operator<(const MenuItem& m)const{
-	return this->timeRemaining() < m.timeRemaining() ? false : true;		//used by std::sort 
+	return this->timeRemaining() < m.timeRemaining();		//used by std::sort 
 }
 
 std::string MenuItem::name(){
