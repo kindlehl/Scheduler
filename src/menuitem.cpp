@@ -52,7 +52,7 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 	return *this;
 }
 
-bool MenuItem::operator<(const MenuItem& m)const{
+bool MenuItem::operator<(const MenuItem& m) const{
 	return this->timeRemaining() < m.timeRemaining();		//used by std::sort 
 }
 
@@ -71,7 +71,7 @@ void MenuItem::activate(){
 	m_selected = true;
 }
 
-std::string MenuItem::name(){
+std::string MenuItem::name() const{
 	return m_name;
 }
 
@@ -79,7 +79,7 @@ void MenuItem::setDatestring(std::string datestring){
 	m_datestring = datestring;
 }
 
-std::string MenuItem::datestring(){
+std::string MenuItem::datestring() const{
 	return m_datestring;
 }
 
@@ -87,7 +87,7 @@ void MenuItem::setName(std::string name){
 	m_name = name;
 }
 
-std::time_t MenuItem::time(){
+std::time_t MenuItem::time() const{
 	return m_time;
 }
 
@@ -95,7 +95,7 @@ void MenuItem::setTime(std::time_t time){
 	m_time = time;
 }
 
-std::string MenuItem::description(){
+std::string MenuItem::description() const{
 	return m_description;
 }
 
