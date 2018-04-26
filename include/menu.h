@@ -20,7 +20,6 @@
 #define DEBUG_SPACING DEBUG_PORT*(width-USED_SPACE)
 
 
-
 #include "menuitem.h"
 #include <iostream>
 #include <string>
@@ -34,6 +33,8 @@
 #include <sstream>
 #include <set>
 #include <regex>
+
+std::time_t timeCreate(std::string s, std::string regexp);
 
 class Menu{
 	public:
@@ -62,22 +63,4 @@ class Menu{
 		void printMenu();	
 		std::vector<int> itemsToExclude;
 };
-
-time_t createTime(std::string s, std::string regexp){
-	std::smatch matches;
-	std::regex_match(s, matches, std::regex(regexp));
-	std::tm t;
-	std::ofstream log("projectLog", std::ofstream::trunc);
-	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1]);
-		t.tm_mday = stoi(matches[2]);
-		t.tm_year = stoi(matches[3]) + 100;
-		t.tm_hour = stoi(matches[4])-1;
-		t.tm_min = stoi(matches[5]);
-		return std::mktime(&t);
-	}else
-		return 0;
-}
-
-
 #endif
