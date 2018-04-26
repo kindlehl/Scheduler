@@ -19,23 +19,35 @@ class MenuItem{
 	public:
 		MenuItem();
 		MenuItem(const MenuItem &m);	
-		MenuItem(std::string m_description, std::string m_name,std::string date,  std::time_t eventTime);
 		MenuItem& operator=(const MenuItem &m);
-		
-		
-		bool active() const;
-		bool operator<(const MenuItem& m) const;
+		MenuItem(std::string m_description, std::string m_name,std::string date,  std::time_t eventTime);
 		explicit MenuItem(std::istream& , char delim = '|');
-		int ID;
+
+		bool operator<(const MenuItem& m) const;
+
+		bool active() const;
+		void activate();
+
 		std::string description();
+		void setDescription(std::string);
+
 		std::string name();
-		std::time_t timeRemaining()const;
-		std::time_t eventTime;		
+		void setName(std::string);
+
+		std::string datestring();
+		void setDatestring(std::string);
+
+		std::time_t timeRemaining() const;
+		std::time_t time();
 		void setTime(std::time_t);
-		std::string dateString;
+
+		int ID();
 	private:
-		bool selected;
+		int m_id;
+		bool m_selected;
 		static int numMenus;
+		std::string m_datestring;
 		std::string m_description, m_name;
+		std::time_t m_time;	
 };
 #endif 
