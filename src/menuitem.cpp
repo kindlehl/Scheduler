@@ -26,27 +26,29 @@ bool allWhitespace(std::string str){
  * DESIRED BEHAVIOR
  * Extracts 1 token per DATA MEMBER, discards remaining tokens
  */
-MenuItem::MenuItem(std::istream& lineFromFile, char delim) : selected(false){
+MenuItem::MenuItem(std::istream& file, char delim) : selected(false){
 	//reduce confusion without polluting the namespace
 	using std::string, std::getline, std::istringstream;
-	//grab line from file, construct stringstream from line
-	string line;
-	getline(lineFromFile, line);
-	istringstream mystream(line);
+	constexpr int numFields = 4;
+	string token[numFields];
 
-	//uses getline to extract tokens from stringstream, delimited by delim
-	string token;
-	//extract name	
-	getline(mystream, token, delim);
-	m_name = token;
-	//extract description
-	getline(mystream, token, delim);
-	m_description = token;
-	//extract date
-	getline(mystream, token, delim);
-	dateString = token;	
-	//get internal date	
-	getline(mystream, token, delim);
+	for(int i = 0; i < numFields; i++){
+		getline(file, token[i], '|'); //fill each string with a token from the file.
+	}
+
+	m_name = token[0]; //extract name	
+	m_description = token[1]; //extract description
+	dateString = token[2]; //extract date
+	eventTime = std::stoi(token[3]); //extract time until event occurs
+
+	file.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //ignore discard the rest of the line
+	if(file.peek() == '\n')	
+		//set eofbit in input stream if extra whitespace is found or eof 
+		//occurs. This was introduced because of a bug where a menuitem
+		//without any populated fields was created, and an exception was
+		//thrown by the call to std::stoi above. DO NOT REMOVE
+		file.setstate(std::ios_base::eofbit);
+	ID=numMenus++;
 }
 
 void MenuItem::setTime(std::time_t theTime){
