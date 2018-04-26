@@ -78,14 +78,14 @@ Menu::Menu(std::string path){
 		addnstr((path + "\n").c_str(), path.length());
 		attroff(A_BOLD);
 	}
-	char next;	
 	//while more events exist, lol. I did this on purpose
-	while(!file.eof() && (next = file.peek()) && next  != (next == '\t' || next == '\n' || next == '\v')){
+	while(file.good() && !file.eof() && file.peek() != '\n'){
 		//add items linee-by-line
 		menu_items.push_back(MenuItem(file));
 	}
 	file.close();	
 	getmaxyx(stdscr, height, width);
+	sortMenu(*this);
 }
 
 Menu::~Menu(){
@@ -129,7 +129,7 @@ void Menu::addItem(){
 			prompt--;
 	}
 	//construct item and add to list
-	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
+	auto eventTime = timeCreate(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
 	
 	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
 	sortMenu(*this);
@@ -239,7 +239,6 @@ void Menu::display(){
 	clearScreen();
 	//print a message and the menu
 	print(msg);
-	sortMenu(*this);
 	printMenu();
 }
 //change menu selection
@@ -255,12 +254,19 @@ void Menu::down(){
 		selectIndex++;
 }
 
-void Menu::add(MenuItem new_item){
-	static std::string count = "";
-	count += "a";
-	print(std::string("one a per menu item in mem: ") + count);
-	menu_items.push_back(new_item);
-	sortMenu(*this);
+std::time_t timeCreate(std::string s, std::string regexp){
+	std::smatch matches;
+	std::regex_match(s, matches, std::regex(regexp));
+	std::tm t;
+	if(matches.size() == 6){
+		t.tm_mon = stoi(matches[1]);
+		t.tm_mday = stoi(matches[2]);
+		t.tm_year = stoi(matches[3]) + 100;
+		t.tm_hour = stoi(matches[4])-1;
+		t.tm_min = stoi(matches[5]);
+		return std::mktime(&t);
+	}else
+		return 0;
 }
 
 

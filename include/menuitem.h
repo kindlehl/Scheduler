@@ -3,6 +3,7 @@
 
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 5
+
 #include <string>
 #include <regex>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include <algorithm>
 #include <ctime>
 #include <fstream>
+#include <exception>
 
 class MenuItem{
 		
@@ -36,5 +38,4 @@ class MenuItem{
 		static int numMenus;
 		std::string m_description, m_name;
 };
-
 #endif 
