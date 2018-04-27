@@ -34,7 +34,7 @@
 #include <set>
 #include <regex>
 
-std::time_t timeCreate(std::string s, std::string regexp);
+std::time_t createTime(std::string s, std::string regexp);
 
 class Menu{
 	public:
