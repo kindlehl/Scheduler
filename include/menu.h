@@ -63,4 +63,10 @@ class Menu{
 		void printMenu();	
 		std::vector<int> itemsToExclude;
 };
+<<<<<<< HEAD
+=======
+
+
+time_t createTime(std::string s, std::string regexp);
+>>>>>>> ruined
 #endif
