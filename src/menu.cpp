@@ -21,7 +21,6 @@ void Menu::sortMenu(Menu& m){
 		});
 }
 
-
 static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
 	switch(c){
 		case(KEY_LEFT):
@@ -58,9 +57,9 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			}
 			refresh();
 			break;
-
 	}
 }
+
 //there is a blank element when the .schedule file is empty. Investigate this next
 static void print(std::string q, int drawFlags = A_NORMAL){
 	//iterates through the string, applying special effects and printing	
@@ -96,7 +95,7 @@ Menu::operator bool() const{
 }
 void Menu::addItem(){
 	curs_set(1);	
-	const char* path =(std::string(HOME)+ "/.schedule_add").c_str();
+	const char* path = (std::string(HOME)+ "/.schedule_add").c_str();
 	scr_dump(path);
 	chtype c;
 	std::smatch matches;
@@ -129,7 +128,7 @@ void Menu::addItem(){
 			prompt--;
 	}
 	//construct item and add to list
-	auto eventTime = timeCreate(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
+	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
 	
 	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
 	sortMenu(*this);
@@ -168,12 +167,9 @@ void Menu::viewMenuItem(){
 	scr_dump((std::string(HOME) + "/.schedule").c_str());
 	do{
 		clearScreen();
-		printField(menu_items[selectIndex].name(), width);
-		addch('\n');
-		printField(menu_items[selectIndex].description(), width);
-		addch('\n');
-		printField(std::to_string(menu_items[selectIndex].timeRemaining()), width); 
-		addch('\n');
+		printField(menu_items[selectIndex].name() + "\n", width);
+		printField(menu_items[selectIndex].description() + "\n", width);
+		printField(std::to_string(menu_items[selectIndex].timeRemaining()) + "\n", width); 
 	} while(getch() != 'q');
 	clearScreen();
 	scr_restore((std::string(HOME) + "/.schedule").c_str());
@@ -185,7 +181,7 @@ void Menu::exit(int sig){
 	std::fstream file(std::string(HOME) + "/.schedule", std::ios::out);
 	//write menu_items back to file, overwriting it
 	for(auto item : menu_items){
-			file << item.name() << "|" << item.description() << "|" << item.dateString << "|" << item.eventTime << "|\n";
+			file << item.name() << "|" << item.description() << "|" << item.datestring() << "|" << item.time() << "|\n";
 	}
 	file.close();
 }
@@ -220,11 +216,9 @@ void Menu::printMenu(){
 		//otherwise print spaces
 		print("  ");
 		//prints up to NAME_SPACING characters
-		printField(item->name(), NAME_SPACING);
-		print("|");
-		printField(item->description(), DESC_SPACING);
-		print("|");
-		printField(item->dateString, DATE_SPACING);
+		printField(item->name(), NAME_SPACING); print("|");
+		printField(item->description(), DESC_SPACING); print("|");
+		printField(item->datestring(), DATE_SPACING);
 		//This line prints the number used to compare and sort the items of the menu
 		printField(std::to_string(static_cast<std::time_t>(item->timeRemaining())), DEBUG_SPACING);
 		attroff(A_STANDOUT);
@@ -254,7 +248,7 @@ void Menu::down(){
 		selectIndex++;
 }
 
-std::time_t timeCreate(std::string s, std::string regexp){
+std::time_t createTime(std::string s, std::string regexp){
 	std::smatch matches;
 	std::regex_match(s, matches, std::regex(regexp));
 	std::tm t;

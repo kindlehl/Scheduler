@@ -9,7 +9,7 @@ MenuItem::MenuItem(std::string description, std::string name, std::string date, 
 }
 
 /*FILE STRUCTURE
- * name|description|datestring|m_time|\n
+ * m_name|m_description|m_datestring|m_time|\n
  * DESIRED BEHAVIOR
  * Extracts 1 token per DATA MEMBER, discards rest of the line
  * Populates class members with file contents
