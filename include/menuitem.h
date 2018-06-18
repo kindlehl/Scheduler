@@ -1,8 +1,6 @@
 #ifndef MENUITEM_H
 #define MENUITEM_H
 
-#define MIN_PRIORITY 1
-#define MAX_PRIORITY 5
 
 #include <string>
 #include <regex>
@@ -47,7 +45,7 @@ class MenuItem{
 		static int numMenus;
 		std::string m_datestring;
 		std::string m_description, m_name;
-		std::time_t m_time;	
+		std::time_t m_time_due, m_time_completion;	
 };
 
 #endif 

@@ -5,11 +5,11 @@ int MenuItem::numMenus = 0;
  * directly mutates member variables
  */
 MenuItem::MenuItem(std::string description, std::string name, std::string date, std::time_t timing)
-	: m_id(numMenus++), m_selected(false), m_datestring(date), m_description(description), m_name(name), m_time(timing){
+	: m_id(numMenus++), m_selected(false), m_datestring(date), m_description(description), m_name(name), m_time_due(timing){
 }
 
 /*FILE STRUCTURE
- * m_name|m_description|m_datestring|m_time|\n
+ * m_name|m_description|m_datestring|m_time_due|\n
  * DESIRED BEHAVIOR
  * Extracts 1 token per DATA MEMBER, discards rest of the line
  * Populates class members with file contents
@@ -26,7 +26,7 @@ MenuItem::MenuItem(std::istream& file, char delim) : m_selected(false){
 	m_name = token[0]; //extract name	
 	m_description = token[1]; //extract description
 	m_datestring = token[2]; //extract date
-	m_time = std::stoi(token[3]); //extract time until event occurs
+	m_time_due = std::stoi(token[3]); //extract time until event occurs
 
 	file.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //ignore discard the rest of the line
 	if(file.peek() == '\n')	
@@ -38,14 +38,14 @@ MenuItem::MenuItem(std::istream& file, char delim) : m_selected(false){
 	m_id = numMenus++;
 }
 
-MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time(m.m_time)
+MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due)
 {
 } 
 
 MenuItem& MenuItem::operator=(const MenuItem &m){
 	//this temp variable allows self-copying
 	MenuItem tempItem(m);
-	this->m_time = tempItem.m_time;
+	this->m_time_due = tempItem.m_time_due;
 	this->m_datestring = tempItem.datestring();
 	this->m_name = tempItem.m_name;
 	this->m_description = tempItem.m_description;
@@ -56,11 +56,11 @@ bool MenuItem::operator<(const MenuItem& m) const{
 	return this->timeRemaining() < m.timeRemaining();		//used by std::sort 
 }
 
-//returns remaining time in minutes
+//returns remaining time in seconds
 std::time_t MenuItem::timeRemaining() const{
 	std::time_t curr;
 	std::time(&curr);
-	return std::difftime(m_time, curr);
+	return std::difftime(m_time_due, curr);
 }
 
 bool MenuItem::active() const{
@@ -88,11 +88,11 @@ void MenuItem::setName(std::string name){
 }
 
 std::time_t MenuItem::time() const{
-	return m_time;
+	return m_time_due;
 }
 
 void MenuItem::setTime(std::time_t time){
-	m_time = time;
+	m_time_due = time;
 }
 
 std::string MenuItem::description() const{

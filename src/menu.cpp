@@ -3,6 +3,18 @@
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
 extern char* HOME;
 
+std::time_t createTime(std::string& s, std::string regexp);
+void expandDateString(std::string& datestring);
+
+/* These keybindings are intended to be modified by a config file eventually. Their definitions are mean to be taken literally 
+ */
+unsigned int REMOVE_KEY = 'r';
+unsigned int ADD_KEY = 'a';
+unsigned int DOWN_KEY = 'j';
+unsigned int UP_KEY = 'k';
+unsigned int QUIT_KEY = 'q';
+unsigned int VIEW_KEY = 'v';
+
 //used this set to catch special characters when reading input
 std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
 
@@ -14,11 +26,31 @@ void clearScreen(){
 	clrtobot();
 }
 
-void Menu::sortMenu(Menu& m){
+/* uses regex parsing to extract times, and modifies the string passed so that it strictly follows the MM/DD/YY HH:MM format. No missing digits
+   */
+std::time_t createTime(std::string& s, std::string regexp){
+	std::smatch matches;
+	std::regex_match(s, matches, std::regex(regexp));
+	std::tm t;
+	expandDateString(s);
+	if(matches.size() == 6){
+		t.tm_mon = stoi(matches[1])-1;
+		t.tm_mday = stoi(matches[2]);
+		t.tm_year = stoi(matches[3]) + 100;
+		t.tm_hour = stoi(matches[4]);
+		t.tm_min = stoi(matches[5]);
+		return std::mktime(&t);
+	}
+	else{
+		return 0;
+	}
+}
+
+void Menu::sort(){
 	//sorts menu so that higher priority items show up first
-	std::sort(m.menu_items.begin(), m.menu_items.end(), [](const MenuItem& left, const MenuItem& right){
-			return left.timeRemaining() < right.timeRemaining();
-		});
+	std::sort(this->menu_items.begin(), this->menu_items.end(), [](const MenuItem& left, const MenuItem& right){
+			return (left.timeRemaining() < right.timeRemaining());
+	});
 }
 
 static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
@@ -40,8 +72,10 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			move(y,x);
 			break;
 		case(KEY_DC):
+			noecho();
 			delch();
 			str.erase(y*maxx+x - promptLen);
+			echo();
 			break;
 		case(KEY_BACKSPACE):
 			//move cursor-most compact way to write... uses short-circuit evaluation to modify or keep the
@@ -78,13 +112,13 @@ Menu::Menu(std::string path){
 		attroff(A_BOLD);
 	}
 	//while more events exist, lol. I did this on purpose
-	while(file.good() && !file.eof() && file.peek() != '\n'){
+	while(file.good() && file.peek() != std::ifstream::traits_type::eof() && !isspace(file.peek())){
 		//add items linee-by-line
 		menu_items.push_back(MenuItem(file));
 	}
 	file.close();	
 	getmaxyx(stdscr, height, width);
-	sortMenu(*this);
+	this->sort();
 }
 
 Menu::~Menu(){
@@ -99,39 +133,51 @@ void Menu::addItem(){
 	scr_dump(path);
 	chtype c;
 	std::smatch matches;
-	std::vector<std::pair<std::string, std::regex> > userPrompts = {
-		{"Please Enter a Description for This Event: ", std::regex(".*") },
-		{"Please Enter a Name for This Event: ", std::regex(".*") },
-		{"Please Enter a Due Date (MM/DD/YY HH:MM): ", std::regex("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*")}	
+	std::vector<std::regex> match_anything = {std::regex(".*")};
+	std::vector<std::regex> match_dates = {std::regex("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*")};
+	std::vector<std::regex> match_times = {std::regex("[^-]?\\d{1,}[hm]")};
+
+	//vector of pairs of form - {"Prompt Text that shows before the cursor", "Vector of Regular Expressions that user's input must match"}
+	std::vector<std::pair<std::string, std::vector<std::regex> > > userPrompts = {
+		{"Please Enter a Description for This Event: ", match_anything },
+		{"Please Enter a Name for This Event: ", match_anything },
+		{"Please Enter a Due Date (MM/DD/YY HH:MM): ", match_dates },	
+		{"Please Enter the time this will take (ex. 10m(in) 25h(r)", match_times}
 	};
-	auto prompt = userPrompts.begin();
 
 	std::vector<std::string> responses;
-	for( ; prompt != userPrompts.end(); prompt++ ){
+	for(auto prompt = userPrompts.begin() ; prompt != userPrompts.end(); prompt++ ){
 		clearScreen();
 		addstr(prompt->first.c_str());	
 		std::string response;
 		do{
 			c = getch();
-			if(special.find(c) == special.end()){
+			if(special.find(c) != special.end()){
+				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt->first.length(), c, response);
+			}else{
 				response+=static_cast<char>(c);
 				addch(c);
-			}else{
-				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt->first.length(), c, response);
 			}
+		//c != newline
 		} while(c != 10);
 		response.erase(response.length()-1);
+		bool already_decremented = false;
 		//if answer matches the prompt's format, add it to list of responses
-		if(regex_match(response, prompt->second))
-			responses.push_back(response);
-		else //try again
-			prompt--;
+		for_each(prompt->second.begin(), prompt->second.end(), [response, &already_decremented, &prompt, &responses](std::regex prompt_regex){
+			if(regex_match(response, prompt_regex)){
+				responses.push_back(response);
+			}
+			else if (!already_decremented){ //try again
+				already_decremented = true;
+				prompt--;
+			}		
+		});
 	}
 	//construct item and add to list
 	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
 	
 	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
-	sortMenu(*this);
+	this->sort();
 	scr_restore(path);
 	curs_set(0);	
 }
@@ -141,17 +187,17 @@ void Menu::update(){
 	wmove(stdscr, 0,0);			//move cursor to top, so text gets written over	
 	wrefresh(stdscr);
 	chtype key = getch();
-	if(key == 'r')
+	if(key == REMOVE_KEY)
 		remove();
-	else if(key == 'a')
+	else if(key == ADD_KEY)
 		addItem();
-	else if(key == 'j')
+	else if(key == DOWN_KEY)
 		down();
-	else if(key == 'k')
+	else if(key == UP_KEY)
 		up();
-	else if(key == 'q')
+	else if(key == QUIT_KEY)
 		exit(0);
-	else if(key == 'v')
+	else if(key == VIEW_KEY)
 		viewMenuItem();
 }
 
@@ -248,35 +294,28 @@ void Menu::down(){
 		selectIndex++;
 }
 
-std::time_t createTime(std::string s, std::string regexp){
-	std::smatch matches;
-	std::regex_match(s, matches, std::regex(regexp));
-	std::tm t;
-	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1]);
-		t.tm_mday = stoi(matches[2]);
-		t.tm_year = stoi(matches[3]) + 100;
-		t.tm_hour = stoi(matches[4])-1;
-		t.tm_min = stoi(matches[5]);
-		return std::mktime(&t);
-	}else
-		return 0;
+void expandDateString(std::string& datestring){
+	//two iterators start at beginning of datestring
+	int spaceCount = 0;
+	std::string::iterator first=datestring.begin(); 
+	std::string::iterator second = first;
+	while(second != datestring.end()){
+		if(*second == '/' || *second == ':' || *second == ' '){
+			if(second-first-spaceCount <= 1){
+				//insert leading zero if its missing
+				datestring.insert(first, '0');
+				second = first = datestring.begin();
+			}else{
+				//all good, move past the slash
+				first = ++second;
+			}
+		}
+		if(*second == ' '){		
+			spaceCount++;
+		}
+		second++;
+	}
+	return;
 }
 
 
-
-time_t createTime(std::string s, std::string regexp){
-	std::smatch matches;
-	std::regex_match(s, matches, std::regex(regexp));
-	std::tm t;
-	std::ofstream log("projectLog", std::ofstream::trunc);
-	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1]);
-		t.tm_mday = stoi(matches[2]);
-		t.tm_year = stoi(matches[3]) + 100;
-		t.tm_hour = stoi(matches[4])-1;
-		t.tm_min = stoi(matches[5]);
-		return std::mktime(&t);
-	}else
-		return 0;
-}

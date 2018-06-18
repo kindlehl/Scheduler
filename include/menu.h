@@ -19,7 +19,6 @@
 #define DATE_SPACING DATE_PORT*(width-USED_SPACE)
 #define DEBUG_SPACING DEBUG_PORT*(width-USED_SPACE)
 
-
 #include "menuitem.h"
 #include <iostream>
 #include <string>
@@ -34,7 +33,8 @@
 #include <set>
 #include <regex>
 
-std::time_t createTime(std::string s, std::string regexp);
+std::time_t createTime(std::string& s, std::string regexp);
+void expandDateString(std::string& datestring);
 
 class Menu{
 	public:
@@ -44,14 +44,13 @@ class Menu{
 		explicit Menu(std::string path);
 		bool operator<(const Menu& m);
 		operator bool() const;	
-		void add(MenuItem m);
 		void up();
 		void down();
 		void viewMenuItem();
 		void addItem();
 		void remove();	
+		void sort();
 		void update();
-		static void sortMenu(Menu& m);
 		void exit(int sig);	
 		static bool run;
 	private:
@@ -63,10 +62,7 @@ class Menu{
 		void printMenu();	
 		std::vector<int> itemsToExclude;
 };
-<<<<<<< HEAD
-=======
 
 
-time_t createTime(std::string s, std::string regexp);
->>>>>>> ruined
+
 #endif
