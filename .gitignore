@@ -12,3 +12,4 @@ src/compile*
 *test.cpp
 projectLog
 
+.clang_complete
