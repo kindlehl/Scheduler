@@ -3,7 +3,7 @@
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
 extern char* HOME;
 
-std::time_t createTime(std::string& s, std::string regexp);
+std::time_t createDueTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);
 
 /* These keybindings are intended to be modified by a config file eventually. Their definitions are mean to be taken literally 
@@ -28,7 +28,7 @@ void clearScreen(){
 
 /* uses regex parsing to extract times, and modifies the string passed so that it strictly follows the MM/DD/YY HH:MM format. No missing digits
    */
-std::time_t createTime(std::string& s, std::string regexp){
+std::time_t createDueTime(std::string& s, std::string regexp){
 	std::smatch matches;
 	std::regex_match(s, matches, std::regex(regexp));
 	std::tm t;
@@ -44,6 +44,19 @@ std::time_t createTime(std::string& s, std::string regexp){
 	else{
 		return 0;
 	}
+}
+
+std::time_t createCompletionTime(std::string& s){
+	time_t seconds = 0;
+	std::regex hour_matcher("(\\d{1,})hr?"); 
+	std::regex minute_matcher("(\\d{1,})m(in)?"); 
+	std::smatch hour_matches;	
+	std::smatch minute_matches;	
+	std::regex_match(s, hour_matches, hour_matcher);
+	std::regex_match(s, minute_matches, minute_matcher);
+	seconds += std::stoi(hour_matches[0]) * 60 * 60;
+	seconds += std::stoi(minute_matches[0]) * 60;
+	return seconds;
 }
 
 void Menu::sort(){
@@ -174,9 +187,9 @@ void Menu::addItem(){
 		});
 	}
 	//construct item and add to list
-	auto eventTime = createTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
-	
-	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime));
+	auto eventTime = createDueTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
+	auto completionTime = createCompletionTime(responses[3]);	
+	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime, completionTime));
 	this->sort();
 	scr_restore(path);
 	curs_set(0);	
@@ -266,7 +279,7 @@ void Menu::printMenu(){
 		printField(item->description(), DESC_SPACING); print("|");
 		printField(item->datestring(), DATE_SPACING);
 		//This line prints the number used to compare and sort the items of the menu
-		printField(std::to_string(static_cast<std::time_t>(item->timeRemaining())), DEBUG_SPACING);
+		printField(std::to_string(static_cast<std::time_t>(item->timeToComplete())), DEBUG_SPACING);
 		attroff(A_STANDOUT);
 		addch('\n');
 	}

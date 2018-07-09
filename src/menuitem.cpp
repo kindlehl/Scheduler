@@ -4,8 +4,8 @@ int MenuItem::numMenus = 0;
 /* Constructs a MenuItem when given all of its data members
  * directly mutates member variables
  */
-MenuItem::MenuItem(std::string description, std::string name, std::string date, std::time_t timing)
-	: m_id(numMenus++), m_selected(false), m_datestring(date), m_description(description), m_name(name), m_time_due(timing){
+MenuItem::MenuItem(std::string description, std::string name, std::string date, std::time_t timing, std::time_t completionTime)
+	: m_id(numMenus++), m_selected(false), m_datestring(date), m_description(description), m_name(name), m_time_due(timing), m_time_completion(completionTime){
 }
 
 /*FILE STRUCTURE
@@ -38,7 +38,7 @@ MenuItem::MenuItem(std::istream& file, char delim) : m_selected(false){
 	m_id = numMenus++;
 }
 
-MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due)
+MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due), m_time_completion(m.m_time_completion)
 {
 } 
 
@@ -46,6 +46,7 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 	//this temp variable allows self-copying
 	MenuItem tempItem(m);
 	this->m_time_due = tempItem.m_time_due;
+	this->m_time_completion = tempItem.m_time_completion;
 	this->m_datestring = tempItem.datestring();
 	this->m_name = tempItem.m_name;
 	this->m_description = tempItem.m_description;
@@ -89,6 +90,14 @@ void MenuItem::setName(std::string name){
 
 std::time_t MenuItem::time() const{
 	return m_time_due;
+}
+
+std::time_t MenuItem::timeToComplete() const{
+	return m_time_completion;
+}
+
+std::time_t MenuItem::setTimeToComplete(std::time_t newTime){
+	m_time_completion = newTime;
 }
 
 void MenuItem::setTime(std::time_t time){
