@@ -47,7 +47,6 @@ class Menu{
 		Menu(const Menu& m) = delete;	
 		~Menu();
 		explicit Menu(std::string path);
-		bool operator<(const Menu& m);
 		operator bool() const;	
 		void up();
 		void down();
