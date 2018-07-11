@@ -14,27 +14,13 @@ MenuItem::MenuItem(std::string description, std::string name, std::string date, 
  * Extracts 1 token per DATA MEMBER, discards rest of the line
  * Populates class members with file contents
  */
-MenuItem::MenuItem(std::istream& file, char delim) : m_selected(false){
-	//reduce confusion without polluting the namespace
-	constexpr int numFields = 4;
-	std::string token[numFields];
-
-	for(int i = 0; i < numFields; i++){
-		getline(file, token[i], '|'); //fill each string with a token from the file.
-	}
-
-	m_name = token[0]; //extract name	
-	m_description = token[1]; //extract description
-	m_datestring = token[2]; //extract date
-	m_time_due = std::stoi(token[3]); //extract time until event occurs
-
-	file.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //ignore discard the rest of the line
-	if(file.peek() == '\n')	
-		//set eofbit in input stream if extra whitespace is found or eof 
-		//occurs. This was introduced because of a bug where a menuitem
-		//without any populated fields was created, and an exception was
-		//thrown by the call to std::stoi above. DO NOT REMOVE
-		file.setstate(std::ios_base::eofbit);
+MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
+	std::cout << "Number of items created: " << numMenus << std::endl;
+	std::cout << "Parent node name: " << item->name() << std::endl;
+	m_name = item->first_node("name")->value(); //extract name	
+	m_description = item->first_node("description")->value(); //extract description
+	m_datestring =  item->first_node("datestring")->value();//extract date
+	m_time_due =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
 	m_id = numMenus++;
 }
 
@@ -97,7 +83,7 @@ std::time_t MenuItem::timeToComplete() const{
 	return m_time_completion;
 }
 
-std::time_t MenuItem::setTimeToComplete(std::time_t newTime){
+void MenuItem::setTimeToComplete(std::time_t newTime){
 	m_time_completion = newTime;
 }
 

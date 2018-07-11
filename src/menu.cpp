@@ -136,12 +136,21 @@ Menu::Menu(std::string path){
 		addnstr((path + "\n").c_str(), path.length());
 		attroff(A_BOLD);
 	}
+	
+	std::string buffer, temp;
 	//while more events exist, lol. I did this on purpose
-	while(file.good() && file.peek() != std::ifstream::traits_type::eof() && !isspace(file.peek())){
-		//add items linee-by-line
-		menu_items.push_back(MenuItem(file));
+	while(file){
+		std::getline(file, temp);
+		buffer += temp;
 	}
 	file.close();	
+	config_text = static_cast<char*>(malloc(buffer.size() + 1));
+	memcpy(config_text, buffer.c_str(), buffer.size());
+	config_text[buffer.size()] = '\0';	
+	config_xml.clear();
+	config_xml.parse<0>(config_text);
+	for(auto xmlnode = config_xml.first_node()->first_node(); xmlnode; xmlnode = xmlnode->next_sibling())
+		menu_items.push_back(MenuItem(xmlnode));
 	getmaxyx(stdscr, height, width);
 	this->sort();
 }

@@ -33,9 +33,13 @@
 #include <set>
 #include <regex>
 #include <exception>
+#include "../lib/rapidxml.hpp"
 
 std::time_t createTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);
+
+extern char* config_text;
+extern rapidxml::xml_document<> config_xml;
 
 class Menu{
 	public:
@@ -54,6 +58,7 @@ class Menu{
 		void update();
 		void exit(int sig);	
 		static bool run;
+		static char* xml_config;
 	private:
 		int width, height;
 		bool printField(std::string field, unsigned int spaces, char delimiter = ' ');
