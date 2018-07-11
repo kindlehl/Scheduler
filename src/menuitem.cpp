@@ -84,6 +84,7 @@ std::string MenuItem::datestring() const{
 	return m_datestring;
 }
 
+
 void MenuItem::setName(std::string name){
 	m_name = name;
 }

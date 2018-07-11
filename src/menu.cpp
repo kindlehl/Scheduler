@@ -3,9 +3,6 @@
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
 extern char* HOME;
 
-std::time_t createDueTime(std::string& s, std::string regexp);
-void expandDateString(std::string& datestring);
-
 /* These keybindings are intended to be modified by a config file eventually. Their definitions are mean to be taken literally 
  */
 unsigned int REMOVE_KEY = 'r';
@@ -15,7 +12,7 @@ unsigned int UP_KEY = 'k';
 unsigned int QUIT_KEY = 'q';
 unsigned int VIEW_KEY = 'v';
 
-//used this set to catch special characters when reading input
+//use this set to catch special characters when reading input
 std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
 
 //initalization of static member
@@ -34,11 +31,17 @@ std::time_t createDueTime(std::string& s, std::string regexp){
 	std::tm t;
 	expandDateString(s);
 	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1])-1;
-		t.tm_mday = stoi(matches[2]);
-		t.tm_year = stoi(matches[3]) + 100;
-		t.tm_hour = stoi(matches[4]);
-		t.tm_min = stoi(matches[5]);
+		try {
+			t.tm_mon = stoi(matches[1])-1;
+			t.tm_mday = stoi(matches[2]);
+			t.tm_year = stoi(matches[3]) + 100;
+			t.tm_hour = stoi(matches[4]);
+			t.tm_min = stoi(matches[5]);
+		} catch (const std::exception& e){
+			std::cerr << "Exception caught in createDueTime; menu.cpp:28" << std::endl;
+			std::cerr << e.what();
+		}
+		
 		return std::mktime(&t);
 	}
 	else{
@@ -48,15 +51,23 @@ std::time_t createDueTime(std::string& s, std::string regexp){
 
 std::time_t createCompletionTime(std::string& s){
 	time_t seconds = 0;
-	std::regex hour_matcher("(\\d{1,})hr?"); 
-	std::regex minute_matcher("(\\d{1,})m(in)?"); 
-	std::smatch hour_matches;	
-	std::smatch minute_matches;	
-	std::regex_match(s, hour_matches, hour_matcher);
-	std::regex_match(s, minute_matches, minute_matcher);
-	seconds += std::stoi(hour_matches[0]) * 60 * 60;
-	seconds += std::stoi(minute_matches[0]) * 60;
-	return seconds;
+	std::cout << s << std::endl;
+	char suffix = *(s.end()-1);
+	int multiplier = 0;
+	switch(suffix){
+		case('d'):
+			multiplier = 60 * 60 * 24;
+			break;
+		case('h'):
+			multiplier = 60 * 60;
+			break;
+		case('m'):
+			multiplier = 60;
+			break;
+	}
+
+	s.erase(s.end() - 1, s.end());
+	return stoi(s) * multiplier;
 }
 
 void Menu::sort(){
@@ -91,9 +102,10 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			echo();
 			break;
 		case(KEY_BACKSPACE):
-			//move cursor-most compact way to write... uses short-circuit evaluation to modify or keep the
-			//current value for y, while adjusting x to what it needs to be
-			x = (x == 0 && (y = y-1) >= 0) ? maxx-1 : x-1;
+			//move cursor - most compact way to write... uses short-circuit evaluation to modify or keep the
+			//current value for y, while adjusting x to what it needs to be. However, it requires this long
+			//comment to explain it. Maybe it would have been better to be more explicit.
+			x = (x == 0 && (y = y-1) >= str.length()/maxx) ? maxx-1 : x-1;
 			move(y, x);
 			if(y*maxx+x < promptLen){
 				x = promptLen;
@@ -146,20 +158,20 @@ void Menu::addItem(){
 	scr_dump(path);
 	chtype c;
 	std::smatch matches;
-	std::vector<std::regex> match_anything = {std::regex(".*")};
-	std::vector<std::regex> match_dates = {std::regex("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*")};
-	std::vector<std::regex> match_times = {std::regex("[^-]?\\d{1,}[hm]")};
+	std::regex match_anything (".*");
+	std::regex match_dates ("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");
+	std::regex match_times ("([1-9]\\d*[hdm]).*");
 
 	//vector of pairs of form - {"Prompt Text that shows before the cursor", "Vector of Regular Expressions that user's input must match"}
-	std::vector<std::pair<std::string, std::vector<std::regex> > > userPrompts = {
+	std::vector<std::pair<std::string, std::regex> > userPrompts = {
 		{"Please Enter a Description for This Event: ", match_anything },
 		{"Please Enter a Name for This Event: ", match_anything },
 		{"Please Enter a Due Date (MM/DD/YY HH:MM): ", match_dates },	
-		{"Please Enter the time this will take (ex. 10m(in) 25h(r)", match_times}
+		{"Please Enter the time this will take (number followed by m,h,d): ", match_times}
 	};
 
-	std::vector<std::string> responses;
-	for(auto prompt = userPrompts.begin() ; prompt != userPrompts.end(); prompt++ ){
+	std::vector<std::pair<std::string, std::smatch>> responses;
+	for(auto prompt = userPrompts.begin(); prompt != userPrompts.end(); prompt++){
 		clearScreen();
 		addstr(prompt->first.c_str());	
 		std::string response;
@@ -173,23 +185,26 @@ void Menu::addItem(){
 			}
 		//c != newline
 		} while(c != 10);
+
 		response.erase(response.length()-1);
-		bool already_decremented = false;
+		std::smatch matches;
+
 		//if answer matches the prompt's format, add it to list of responses
-		for_each(prompt->second.begin(), prompt->second.end(), [response, &already_decremented, &prompt, &responses](std::regex prompt_regex){
-			if(regex_match(response, prompt_regex)){
-				responses.push_back(response);
-			}
-			else if (!already_decremented){ //try again
-				already_decremented = true;
-				prompt--;
-			}		
-		});
+
+		if(regex_match(response, matches, prompt->second)){
+			responses.push_back(std::pair<std::string, std::smatch>(response, matches));
+		}
+		else {
+			prompt--;
+			continue;
+		}		
 	}
 	//construct item and add to list
-	auto eventTime = createDueTime(responses[2], "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");	
-	auto completionTime = createCompletionTime(responses[3]);	
-	menu_items.push_back(MenuItem(responses[0], responses[1], responses[2], eventTime, completionTime));
+	
+	auto eventTime = createDueTime(responses[2].first, "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d).*");	
+	std::string completionMatch(responses[3].second[1]);
+	auto completionTime = createCompletionTime(completionMatch);	
+	menu_items.push_back(MenuItem(responses[0].first, responses[1].first, responses[2].first, eventTime, completionTime));
 	this->sort();
 	scr_restore(path);
 	curs_set(0);	
@@ -310,25 +325,31 @@ void Menu::down(){
 void expandDateString(std::string& datestring){
 	//two iterators start at beginning of datestring
 	int spaceCount = 0;
-	std::string::iterator first=datestring.begin(); 
+	std::string::iterator first = datestring.begin(); 
 	std::string::iterator second = first;
+	int firstSpace = datestring.find(' ');
+
+	if(datestring[firstSpace + 1] == ' '){
+		datestring.erase(firstSpace, 1);
+	}
+
 	while(second != datestring.end()){
 		if(*second == '/' || *second == ':' || *second == ' '){
-			if(second-first-spaceCount <= 1){
+			if(second-first-spaceCount == 1){
 				//insert leading zero if its missing
 				datestring.insert(first, '0');
+				//std::cout << datestring << std::endl;
 				second = first = datestring.begin();
 			}else{
 				//all good, move past the slash
 				first = ++second;
 			}
-		}
-		if(*second == ' '){		
-			spaceCount++;
+			if(*second == ' '){
+				spaceCount++;
+			}
 		}
 		second++;
 	}
-	return;
 }
 
 

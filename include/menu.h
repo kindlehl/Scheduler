@@ -32,6 +32,7 @@
 #include <sstream>
 #include <set>
 #include <regex>
+#include <exception>
 
 std::time_t createTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);
