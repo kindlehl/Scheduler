@@ -191,7 +191,7 @@ void Menu::addItem(){
 			}else{
 				response+=static_cast<char>(c);
 				addch(c);
-			;}
+			}
 		//c != newline
 		} while(c != 10);
 
@@ -220,11 +220,9 @@ void Menu::addItem(){
 		config_xml.allocate_node(rapidxml::node_element, "datestring", responses[2].first.c_str()),
 		config_xml.allocate_node(rapidxml::node_element, "completionTime", std::to_string(completionTime).c_str())
 	};
-	std::cerr << newItem << std::endl;
 	for(auto node : nodes){
 		newItem->append_node(node);
 	}
-	std::cerr << newItem << std::endl;
 	config_xml.first_node()->append_node(newItem);
 	menu_items.push_back(MenuItem(newItem));
 	updateConfig();
