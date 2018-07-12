@@ -132,8 +132,7 @@ Menu::Menu(std::string path){
 	
 	std::string buffer, temp;
 	//while more events exist, lol. I did this on purpose
-	while(file){
-		std::getline(file, temp);
+	while(std::getline(file, temp)){
 		buffer += temp;
 	}
 	file.close();	
