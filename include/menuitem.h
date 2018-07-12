@@ -21,7 +21,6 @@ class MenuItem{
 		MenuItem(const MenuItem &m);	
 		MenuItem& operator=(const MenuItem &m);
 		bool operator<(const MenuItem& m) const;
-		MenuItem(std::string m_description, std::string m_name,std::string date,  std::time_t eventTime, std::time_t completionTime);
 		explicit MenuItem(rapidxml::xml_node<>* item);
 
 		bool active() const;

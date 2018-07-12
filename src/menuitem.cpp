@@ -4,19 +4,20 @@ int MenuItem::numMenus = 0;
 /* Constructs a MenuItem when given all of its data members
  * directly mutates member variables
  */
-MenuItem::MenuItem(std::string description, std::string name, std::string date, std::time_t timing, std::time_t completionTime)
-	: m_id(numMenus++), m_selected(false), m_datestring(date), m_description(description), m_name(name), m_time_due(timing), m_time_completion(completionTime){
-}
 
-/*FILE STRUCTURE
- * m_name|m_description|m_datestring|m_time_due|\n
- * DESIRED BEHAVIOR
- * Extracts 1 token per DATA MEMBER, discards rest of the line
- * Populates class members with file contents
+/* XML Format
+ * <username>
+ *	<item>
+ *		<name>...</name>
+ *		<description>...</description>
+ *		...
+ *	</item>
+ *	<item>
+ *		<name>...</name>
+ *	
+ * </username>
  */
 MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
-	std::cout << "Number of items created: " << numMenus << std::endl;
-	std::cout << "Parent node name: " << item->name() << std::endl;
 	m_name = item->first_node("name")->value(); //extract name	
 	m_description = item->first_node("description")->value(); //extract description
 	m_datestring =  item->first_node("datestring")->value();//extract date
