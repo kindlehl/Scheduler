@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <cstdlib>
 #include <regex>
 #include <iostream>
 #include <limits>
@@ -11,6 +12,7 @@
 #include <ctime>
 #include <fstream>
 #include <exception>
+#include "../lib/rapidxml.hpp"
 
 class MenuItem{
 		
@@ -19,8 +21,7 @@ class MenuItem{
 		MenuItem(const MenuItem &m);	
 		MenuItem& operator=(const MenuItem &m);
 		bool operator<(const MenuItem& m) const;
-		MenuItem(std::string m_description, std::string m_name,std::string date,  std::time_t eventTime, std::time_t completionTime);
-		explicit MenuItem(std::istream& , char delim = '|');
+		explicit MenuItem(rapidxml::xml_node<>* item);
 
 		bool active() const;
 		void activate();
@@ -35,7 +36,7 @@ class MenuItem{
 		void setDatestring(std::string);
 
 		std::time_t timeToComplete() const;
-		std::time_t setTimeToComplete(std::time_t);
+		void setTimeToComplete(std::time_t);
 
 		std::time_t timeRemaining() const;
 		std::time_t time() const;

@@ -27,21 +27,15 @@ void clearScreen(){
    */
 std::time_t createDueTime(std::string& s, std::string regexp){
 	std::smatch matches;
+	expandDateString(s);
 	std::regex_match(s, matches, std::regex(regexp));
 	std::tm t;
-	expandDateString(s);
 	if(matches.size() == 6){
-		try {
-			t.tm_mon = stoi(matches[1])-1;
-			t.tm_mday = stoi(matches[2]);
-			t.tm_year = stoi(matches[3]) + 100;
-			t.tm_hour = stoi(matches[4]);
-			t.tm_min = stoi(matches[5]);
-		} catch (const std::exception& e){
-			std::cerr << "Exception caught in createDueTime; menu.cpp:28" << std::endl;
-			std::cerr << e.what();
-		}
-		
+		t.tm_mon = stoi(matches[1])-1;
+		t.tm_mday = stoi(matches[2]);
+		t.tm_year = stoi(matches[3]) + 100;
+		t.tm_hour = stoi(matches[4]);
+		t.tm_min = stoi(matches[5]);
 		return std::mktime(&t);
 	}
 	else{
@@ -51,7 +45,6 @@ std::time_t createDueTime(std::string& s, std::string regexp){
 
 std::time_t createCompletionTime(std::string& s){
 	time_t seconds = 0;
-	std::cout << s << std::endl;
 	char suffix = *(s.end()-1);
 	int multiplier = 0;
 	switch(suffix){
@@ -136,12 +129,20 @@ Menu::Menu(std::string path){
 		addnstr((path + "\n").c_str(), path.length());
 		attroff(A_BOLD);
 	}
+	
+	std::string buffer, temp;
 	//while more events exist, lol. I did this on purpose
-	while(file.good() && file.peek() != std::ifstream::traits_type::eof() && !isspace(file.peek())){
-		//add items linee-by-line
-		menu_items.push_back(MenuItem(file));
+	while(std::getline(file, temp)){
+		buffer += temp;
 	}
 	file.close();	
+	config_text = static_cast<char*>(malloc(buffer.size() + 1));
+	memcpy(config_text, buffer.c_str(), buffer.size());
+	config_text[buffer.size()] = '\0';	
+	config_xml.clear();
+	config_xml.parse<0>(config_text);
+	for(auto xmlnode = config_xml.first_node()->first_node(); xmlnode; xmlnode = xmlnode->next_sibling())
+		menu_items.push_back(MenuItem(xmlnode));
 	getmaxyx(stdscr, height, width);
 	this->sort();
 }
@@ -152,6 +153,13 @@ Menu::~Menu(){
 Menu::operator bool() const{
 	return run;
 }
+
+void updateConfig(){
+	std::ofstream file(CONF_PATH, std::ios::out);
+	file << config_xml;
+	//add logic here to communicate with daemon process
+}
+
 void Menu::addItem(){
 	curs_set(1);	
 	const char* path = (std::string(HOME)+ "/.schedule_add").c_str();
@@ -202,9 +210,21 @@ void Menu::addItem(){
 	//construct item and add to list
 	
 	auto eventTime = createDueTime(responses[2].first, "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d).*");	
-	std::string completionMatch(responses[3].second[1]);
+	std::string completionMatch = responses[3].second[1];
 	auto completionTime = createCompletionTime(completionMatch);	
-	menu_items.push_back(MenuItem(responses[0].first, responses[1].first, responses[2].first, eventTime, completionTime));
+	auto newItem = config_xml.allocate_node(rapidxml::node_element, "item");
+	std::vector<rapidxml::xml_node<>*> nodes = {
+		config_xml.allocate_node(rapidxml::node_element, "description", responses[0].first.c_str()),
+		config_xml.allocate_node(rapidxml::node_element, "name", responses[1].first.c_str()),
+		config_xml.allocate_node(rapidxml::node_element, "datestring", responses[2].first.c_str()),
+		config_xml.allocate_node(rapidxml::node_element, "completionTime", std::to_string(completionTime).c_str())
+	};
+	for(auto node : nodes){
+		newItem->append_node(node);
+	}
+	config_xml.first_node()->append_node(newItem);
+	menu_items.push_back(MenuItem(newItem));
+	updateConfig();
 	this->sort();
 	scr_restore(path);
 	curs_set(0);	
@@ -252,11 +272,9 @@ void Menu::viewMenuItem(){
 //this function is called when destructing a menu and when a signal is caught.
 void Menu::exit(int sig){
 	run = false;
-	std::fstream file(std::string(HOME) + "/.schedule", std::ios::out);
-	//write menu_items back to file, overwriting it
-	for(auto item : menu_items){
-			file << item.name() << "|" << item.description() << "|" << item.datestring() << "|" << item.time() << "|\n";
-	}
+	std::fstream file(CONF_PATH, std::ios::out);
+	//write the xml back to the file
+	file << config_xml;
 	file.close();
 }
 
@@ -338,7 +356,6 @@ void expandDateString(std::string& datestring){
 			if(second-first-spaceCount == 1){
 				//insert leading zero if its missing
 				datestring.insert(first, '0');
-				//std::cout << datestring << std::endl;
 				second = first = datestring.begin();
 			}else{
 				//all good, move past the slash

@@ -1,7 +1,7 @@
 ALL_OBJECTS=$(wildcard *.o)
 NAME=Scheduler
 CC=g++ -g -std=c++17
-CXX_FLAGS= -pedantic -Wall 
+CXX_FLAGS= -pedantic -Wall -fpermissive
 
 
 all: menuitem menu main
