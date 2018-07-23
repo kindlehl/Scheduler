@@ -199,7 +199,7 @@ void Menu::addItem(){
 
 		//if answer matches the prompt's format, add it to list of responses
 
-		if(regex_match(response, matches, prompt->second)){
+		if(Ex::run("menu.cpp at 202", [=, &matches] () -> bool { return regex_match(response, matches, prompt->second); } )){
 			responses.push_back(std::pair<std::string, std::smatch>(response, matches));
 		}
 		else {
