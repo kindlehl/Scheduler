@@ -258,7 +258,7 @@ void Menu::update(){
 			break;
 		default:
 			valid_press = false;
-			this->message = "Hotkey not registered. Press h for a short list of all commands";
+			this->message = "Hotkey not registered. Press h for a short list of all commands\n";
 			break;
 	}
 
@@ -299,7 +299,23 @@ void Menu::exit(int sig){
 //Prints a string up to $spaces number of characters, ending with spaces if there is excess and an elipses "..." when there is not enough spaces
 //
 //delimiter defaults to ' '
-bool Menu::printField(std::string field, unsigned int spaces, char delimiter){
+bool Menu::printField(std::string field, unsigned int spaces, char delimiter, stringtype type){
+	logDetail(field.c_str());
+	if(type == HEADER){
+		std::string finished_field;
+		int heading_spacing = (spaces-field.length())/2;
+		bool odd_spacing = (spaces-field.length())%2;
+		//if the field does not have even distribution of surrounding space
+		if(odd_spacing){
+			finished_field = " ";
+		}
+		finished_field.insert(0, heading_spacing, delimiter);
+		finished_field += field;
+		finished_field.insert(finished_field.length(), heading_spacing, delimiter);
+		addnstr(finished_field.c_str(), spaces);
+		return false;
+	}
+		
 	bool tooBig = false;
 	std::string ending = "..."; //used if field is longer than spaces
 	if(field.length() > spaces){
@@ -310,27 +326,37 @@ bool Menu::printField(std::string field, unsigned int spaces, char delimiter){
 		//fills the field with spaces
 		field.append(spaces-field.length(),delimiter);
 	}
+//	logDetail(field.c_str());
 	addnstr(field.c_str(), spaces);	
 	return tooBig;
 }
 
 void Menu::printMenu(){
 	//prints basic menu
+	if(!menu_items.empty()){
+		print("  ");
+		printField("NAME", NAME_SPACING, ' ', HEADER); print("|");
+		printField("DESCRIPTION", DESC_SPACING, ' ', HEADER); print("|");
+		printField("DATE", DATE_SPACING, ' ', HEADER); print("|");
+		printField("TIME LEFT", DEBUG_SPACING, ' ', HEADER);
+		addch('\n');
+	}
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
 		if(item-menu_items.begin() == selectIndex && !menu_items.empty()){
 			//print arrow indicating current item
 			addnstr("->", 2);
 			attrset(A_STANDOUT);
 		}
-		else
-		//otherwise print spaces
-		print("  ");
+		else{
+			//otherwise print spaces
+			print("  ");
+		}
 		//prints up to NAME_SPACING characters
-		printField(item->name(), NAME_SPACING); print("|");
-		printField(item->description(), DESC_SPACING); print("|");
-		printField(item->datestring(), DATE_SPACING);
+		printField(item->name(), NAME_SPACING, ' ', NORMAL); print("|");
+		printField(item->description(), DESC_SPACING, ' ', NORMAL); print("|");
+		printField(item->datestring(), DATE_SPACING, ' ', NORMAL); print("|");
 		//This line prints the number used to compare and sort the items of the menu
-		printField(std::to_string(static_cast<std::time_t>(item->timeToComplete())), DEBUG_SPACING);
+		printField(std::to_string(static_cast<std::time_t>(item->timeToComplete())), DEBUG_SPACING, ' ', NORMAL);
 		attroff(A_STANDOUT);
 		addch('\n');
 	}
@@ -338,7 +364,7 @@ void Menu::printMenu(){
 }
 
 void Menu::display(){
-	//move cursor to top of window and erase all contents
+	//move cursor to top-left of window and erase all contents
 	clearScreen();
 	//print a message and the menu
 	print(message);

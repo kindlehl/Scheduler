@@ -48,6 +48,12 @@ extern rapidxml::xml_document<> config_xml;
 
 void updateConfig();
 
+//enum used in printField() to determine the spacing.
+enum stringtype {
+	NORMAL,
+	HEADER
+};
+
 class Menu{
 	public:
 		Menu() = delete;
@@ -67,14 +73,13 @@ class Menu{
 	private:
 		int width, height;
 		std::string message;
-		bool printField(std::string field, unsigned int spaces, char delimiter = ' ');
+		bool printField(std::string field, unsigned int spaces, char delimiter = ' ', stringtype type = HEADER);
+
 		void display();
 		unsigned int selectIndex = 0;
 		std::vector<MenuItem> menu_items;
 		void printMenu();	
 		std::vector<int> itemsToExclude;
 };
-
-
 
 #endif
