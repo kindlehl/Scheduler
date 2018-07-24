@@ -72,6 +72,7 @@ void Menu::sort(){
 
 static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
 	switch(c){
+		/*
 		case(KEY_LEFT):
 			x -= (x != 0);
 			move(y,x);
@@ -88,6 +89,7 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			y += (y != maxy);
 			move(y,x);
 			break;
+			*/
 		case(KEY_DC):
 			noecho();
 			delch();
