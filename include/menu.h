@@ -2,7 +2,7 @@
 #define MENU_H
 
 //UPDATE THIS EVERYTIME YOU ADD A SEPARATOR OR ANYTHING THAT TAKES UP A STATIC AMOUNT OF SPACE ON THE MENU. THIS INCLUDES A '|' OR A "  ". THIS NUMBER SHOULD BE THE NUMBER OF SPACES USED IN MENU ENTRIES
-#define USED_SPACE (2+3) //parenthasized to prevent fuckery
+#define USED_SPACE (2+3) //parenthasized to prevent errors with arithmetic precedence
 //2 spaces at beginning, 3 pipes between items
 
 
@@ -11,7 +11,7 @@
 #define DESC_PORT .29f
 #define DATE_PORT .21f
 #define DEBUG_PORT .20f
-
+#define DEF_MSG "Welcome to Scheduler, the software that does the thinking for you! Use jk to navigate items, a and r to add or remove items, v to view items in more detail, and q to quit\n"; 
 
 //these macros give the number of cells in the terminal that each piece of the menu should take up when printing. This way ensures that the program scales with window resizes.
 #define NAME_SPACING NAME_PORT*(width-USED_SPACE)
@@ -66,6 +66,7 @@ class Menu{
 		static bool run;
 	private:
 		int width, height;
+		std::string message;
 		bool printField(std::string field, unsigned int spaces, char delimiter = ' ');
 		void display();
 		unsigned int selectIndex = 0;

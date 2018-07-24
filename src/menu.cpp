@@ -5,12 +5,12 @@ extern char* HOME;
 
 /* These keybindings are intended to be modified by a config file eventually. Their definitions are mean to be taken literally 
  */
-unsigned int REMOVE_KEY = 'r';
-unsigned int ADD_KEY = 'a';
-unsigned int DOWN_KEY = 'j';
-unsigned int UP_KEY = 'k';
-unsigned int QUIT_KEY = 'q';
-unsigned int VIEW_KEY = 'v';
+const unsigned int REMOVE_KEY = 'r';
+const unsigned int ADD_KEY = 'a';
+const unsigned int DOWN_KEY = 'j';
+const unsigned int UP_KEY = 'k';
+const unsigned int QUIT_KEY = 'q';
+const unsigned int VIEW_KEY = 'v';
 
 //use this set to catch special characters when reading input
 std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
@@ -131,6 +131,7 @@ Menu::Menu(std::string path){
 	}
 	
 	std::string buffer, temp;
+	this->message = DEF_MSG;
 	//while more events exist, lol. I did this on purpose
 	while(std::getline(file, temp)){
 		buffer += temp;
@@ -235,18 +236,35 @@ void Menu::update(){
 	wmove(stdscr, 0,0);			//move cursor to top, so text gets written over	
 	wrefresh(stdscr);
 	chtype key = getch();
-	if(key == REMOVE_KEY)
-		remove();
-	else if(key == ADD_KEY)
-		addItem();
-	else if(key == DOWN_KEY)
-		down();
-	else if(key == UP_KEY)
-		up();
-	else if(key == QUIT_KEY)
-		exit(0);
-	else if(key == VIEW_KEY)
-		viewMenuItem();
+	bool valid_press = true;
+	switch(key){
+		case REMOVE_KEY:
+			remove();
+			break;
+		case ADD_KEY:
+			addItem();
+			break;
+		case DOWN_KEY:
+			down();
+			break;
+		case UP_KEY:
+			up();
+			break;
+		case QUIT_KEY:
+			exit(0);
+			break;
+		case VIEW_KEY:
+			viewMenuItem();
+			break;
+		default:
+			valid_press = false;
+			this->message = "Hotkey not registered. Press h for a short list of all commands";
+			break;
+	}
+
+	if(valid_press){
+		this->message = DEF_MSG;	
+	}
 }
 
 void Menu::remove(){
@@ -320,11 +338,10 @@ void Menu::printMenu(){
 }
 
 void Menu::display(){
-	std::string msg = "Welcome to Scheduler, the software that does the thinking for you! Use jk to navigate items, a and r to add or remove items, v to view items in more detail, and q to quit\n";
 	//move cursor to top of window and erase all contents
 	clearScreen();
 	//print a message and the menu
-	print(msg);
+	print(message);
 	printMenu();
 }
 //change menu selection
