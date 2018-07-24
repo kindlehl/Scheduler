@@ -20,6 +20,7 @@
 #define DEBUG_SPACING DEBUG_PORT*(width-USED_SPACE)
 
 #include "menuitem.h"
+#include "exception.h"
 #include <iostream>
 #include <string>
 #include <cstring>

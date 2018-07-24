@@ -1,10 +1,12 @@
 #include <iostream>
 #include "../include/menu.h"
+#include "../include/logger.h"
 #include <curses.h>
 #include <signal.h>
 #include <functional>
 #include "../lib/rapidxml.hpp"
 #include <sys/stat.h>
+
 
 char* HOME;
 char* CONF_PATH;
@@ -19,8 +21,10 @@ void sigintHandler(int);
 
 int main(){
 	HOME = getenv("HOME");
-    CONF_PATH = malloc(strlen(HOME) + strlen("/.schedule") + 1);
+    CONF_PATH = (char*)malloc(strlen(HOME) + strlen("/.schedule") + 1);
 	CONF_PATH[0]='\0';
+	initLog();
+
 	strcat(CONF_PATH, HOME);
 	strcat(CONF_PATH, "/.schedule");
 	struct stat file_info;
