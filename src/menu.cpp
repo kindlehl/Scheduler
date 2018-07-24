@@ -320,7 +320,7 @@ void Menu::printMenu(){
 }
 
 void Menu::display(){
-	std::string msg = "This is a test message to see if I can reliably print stuff out into the screen. Thanks for being patient.\n";
+	std::string msg = "Welcome to Scheduler, the software that does the thinking for you! Use jk to navigate items, a and r to add or remove items, v to view items in more detail, and q to quit\n";
 	//move cursor to top of window and erase all contents
 	clearScreen();
 	//print a message and the menu
