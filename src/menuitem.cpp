@@ -21,7 +21,7 @@ MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_name = item->first_node("name")->value(); //extract name	
 	m_description = item->first_node("description")->value(); //extract description
 	m_datestring =  item->first_node("datestring")->value();//extract date
-	m_time_due =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
+	m_time_completion =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
 	m_id = numMenus++;
 }
 
@@ -102,4 +102,56 @@ std::string MenuItem::description() const{
 
 void MenuItem::setDescription(std::string desc){
 	m_description = desc;
+}
+
+std::string MenuItem::timeToCompleteString(){
+	std::time_t time_left = this->timeToComplete();
+	int secondsPerHour = 60 * 60;
+	int secondsPerMinute = 60;
+
+	std::string h, m, s;
+
+	int hoursLeft = time_left/secondsPerHour;
+	time_left %= secondsPerHour;
+
+	int minutesLeft = time_left/secondsPerMinute;
+	time_left %= secondsPerMinute;
+
+	int secondsLeft = time_left;
+	if ( hoursLeft  < 10 ){
+		h = "0";
+	}
+	if ( minutesLeft  < 10 ){
+		m = "0";
+	}
+	if ( secondsLeft  < 10 ){
+		s = "0";
+	}
+		
+	h += std::to_string(hoursLeft);
+	m += std::to_string(minutesLeft);
+	s += std::to_string(secondsLeft);
+
+	return h + ":" + m + ":" + s;
+}
+
+std::string MenuItem::timeLeftString(){
+	std::time_t time_left = this->timeRemaining();
+	int secondsPerDay = 60 * 60 * 24;
+	int secondsPerHour = 60 * 60;
+	int secondsPerMinute = 60;
+
+	int daysLeft = time_left/secondsPerDay;
+	time_left %= secondsPerDay;
+
+	int hoursLeft = time_left/secondsPerHour;
+	time_left %= secondsPerHour;
+
+	int minutesLeft = time_left/secondsPerMinute;
+	time_left %= secondsPerMinute;
+
+	int secondsLeft = time_left;
+
+	return std::to_string(daysLeft) + " days and " + std::to_string(hoursLeft) + ":" + std::to_string(minutesLeft) + ":" + std::to_string(secondsLeft);
+
 }

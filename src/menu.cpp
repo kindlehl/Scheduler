@@ -339,7 +339,7 @@ void Menu::printMenu(){
 		printField("NAME", NAME_SPACING, ' ', HEADER); print("|");
 		printField("DESCRIPTION", DESC_SPACING, ' ', HEADER); print("|");
 		printField("DATE", DATE_SPACING, ' ', HEADER); print("|");
-		printField("TIME LEFT", DEBUG_SPACING, ' ', HEADER);
+		printField("DURATION ( hh:mm:ss )", DEBUG_SPACING, ' ', HEADER);
 		addch('\n');
 	}
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
@@ -357,7 +357,7 @@ void Menu::printMenu(){
 		printField(item->description(), DESC_SPACING, ' ', NORMAL); print("|");
 		printField(item->datestring(), DATE_SPACING, ' ', NORMAL); print("|");
 		//This line prints the number used to compare and sort the items of the menu
-		printField(std::to_string(static_cast<std::time_t>(item->timeToComplete())), DEBUG_SPACING, ' ', NORMAL);
+		printField(item->timeToCompleteString(), DEBUG_SPACING, ' ', NORMAL);
 		attroff(A_STANDOUT);
 		addch('\n');
 	}

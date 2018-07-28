@@ -43,6 +43,8 @@ class MenuItem{
 		void setTime(std::time_t);
 
 		double priority();
+		std::string timeLeftString();
+		std::string timeToCompleteString();
 		int ID() const;
 	private:
 		int m_id;
