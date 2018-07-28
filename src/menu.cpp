@@ -135,7 +135,6 @@ Menu::Menu(std::string path){
 	
 	std::string buffer, temp;
 	this->message = DEF_MSG;
-	//while more events exist, lol. I did this on purpose
 	while(std::getline(file, temp)){
 		buffer += temp;
 	}
