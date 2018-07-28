@@ -140,10 +140,7 @@ Menu::Menu(std::string path){
 		buffer += temp;
 	}
 	file.close();	
-	config_text = static_cast<char*>(malloc(buffer.size() + 1));
-	memcpy(config_text, buffer.c_str(), buffer.size());
-	config_text[buffer.size()] = '\0';	
-	config_xml.clear();
+	config_text = config_xml.allocate_string(buffer.c_str());
 	config_xml.parse<0>(config_text);
 	for(auto xmlnode = config_xml.first_node()->first_node(); xmlnode; xmlnode = xmlnode->next_sibling())
 		menu_items.push_back(MenuItem(xmlnode));
@@ -161,6 +158,7 @@ Menu::operator bool() const{
 void updateConfig(){
 	std::ofstream file(CONF_PATH, std::ios::out);
 	file << config_xml;
+	file.close();
 	//add logic here to communicate with daemon process
 }
 
@@ -218,10 +216,10 @@ void Menu::addItem(){
 	auto completionTime = createCompletionTime(completionMatch);	
 	auto newItem = config_xml.allocate_node(rapidxml::node_element, "item");
 	std::vector<rapidxml::xml_node<>*> nodes = {
-		config_xml.allocate_node(rapidxml::node_element, "description", responses[0].first.c_str()),
-		config_xml.allocate_node(rapidxml::node_element, "name", responses[1].first.c_str()),
-		config_xml.allocate_node(rapidxml::node_element, "datestring", responses[2].first.c_str()),
-		config_xml.allocate_node(rapidxml::node_element, "completionTime", std::to_string(completionTime).c_str())
+		config_xml.allocate_node(rapidxml::node_element, "description", config_xml.allocate_string(responses[0].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "name", config_xml.allocate_string(responses[1].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "datestring", config_xml.allocate_string(responses[2].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "completionTime", config_xml.allocate_string(std::to_string(completionTime).c_str()))
 	};
 	for(auto node : nodes){
 		newItem->append_node(node);
