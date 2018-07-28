@@ -63,10 +63,11 @@ std::time_t createCompletionTime(std::string& s){
 	return stoi(s) * multiplier;
 }
 
+
 void Menu::sort(){
 	//sorts menu so that higher priority items show up first
 	std::sort(this->menu_items.begin(), this->menu_items.end(), [](const MenuItem& left, const MenuItem& right){
-			return (left.timeRemaining() < right.timeRemaining());
+			return (left.priority() < right.priority());
 	});
 }
 

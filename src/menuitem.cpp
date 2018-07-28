@@ -51,6 +51,10 @@ std::time_t MenuItem::timeRemaining() const{
 	return std::difftime(m_time_due, curr);
 }
 
+double MenuItem::priority(){
+	return timeRemaining()/timeToComplete();
+}
+
 bool MenuItem::active() const{
 	return m_selected;
 }
