@@ -18,20 +18,20 @@ std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, 
 //initalization of static member
 bool Menu::run = true;
 
-void clearScreen(){
+void clearScreen() {
 	move(0,0);
 	clrtobot();
 }
 
 /* uses regex parsing to extract times, and modifies the string passed so that it strictly follows the MM/DD/YY HH:MM format. No missing digits
    */
-std::time_t createDueTime(std::string& s, std::string regexp){
+std::time_t createDueTime(std::string& s, std::string regexp) {
 	std::smatch matches;
 	expandDateString(s);
 	std::regex_match(s, matches, std::regex(regexp));
 	std::tm t;
-	if(matches.size() == 6){
-		t.tm_mon = stoi(matches[1])-1;
+	if(matches.size() == 6) {
+		t.tm_mon = stoi(matches[1]) - 1;
 		t.tm_mday = stoi(matches[2]);
 		t.tm_year = stoi(matches[3]) + 100;
 		t.tm_hour = stoi(matches[4]);
@@ -43,11 +43,11 @@ std::time_t createDueTime(std::string& s, std::string regexp){
 	}
 }
 
-std::time_t createCompletionTime(std::string& s){
+std::time_t createCompletionTime(std::string& s) {
 	time_t seconds = 0;
 	char suffix = *(s.end()-1);
 	int multiplier = 0;
-	switch(suffix){
+	switch(suffix) {
 		case('d'):
 			multiplier = 60 * 60 * 24;
 			break;
@@ -64,15 +64,15 @@ std::time_t createCompletionTime(std::string& s){
 }
 
 
-void Menu::sort(){
+void Menu::sort() {
 	//sorts menu so that higher priority items show up first
-	std::sort(this->menu_items.begin(), this->menu_items.end(), [](const MenuItem& left, const MenuItem& right){
+	std::sort(this->menu_items.begin(), this->menu_items.end(), [](const MenuItem& left, const MenuItem& right) {
 			return (left.priority() < right.priority());
 	});
 }
 
-static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str){
-	switch(c){
+static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, chtype c, std::string& str) {
+	switch(c) {
 		/*
 		case(KEY_LEFT):
 			x -= (x != 0);
@@ -94,21 +94,21 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 		case(KEY_DC):
 			noecho();
 			delch();
-			str.erase(y*maxx+x - promptLen);
+			str.erase(y * maxx + x - promptLen);
 			echo();
 			break;
 		case(KEY_BACKSPACE):
 			//move cursor - most compact way to write... uses short-circuit evaluation to modify or keep the
 			//current value for y, while adjusting x to what it needs to be. However, it requires this long
 			//comment to explain it. Maybe it would have been better to be more explicit.
-			x = (x == 0 && (y = y-1) >= str.length()/maxx) ? maxx-1 : x-1;
+			x = (x == 0 && (y = y - 1) >= str.length()/maxx) ? maxx - 1 : x - 1;
 			move(y, x);
-			if(y*maxx+x < promptLen){
+			if(y * maxx + x < promptLen) {
 				x = promptLen;
 				move(y, x);
 			}else{ 
 				delch(); 
-				str.erase(str.length()-1);
+				str.erase(str.length() - 1);
 			}
 			refresh();
 			break;
@@ -116,16 +116,16 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 }
 
 //there is a blank element when the .schedule file is empty. Investigate this next
-static void print(std::string q, int drawFlags = A_NORMAL){
+static void print(std::string q, int drawFlags = A_NORMAL) {
 	//iterates through the string, applying special effects and printing	
-	for(char c : q){
+	for(char c : q) {
 		waddch(stdscr, c | drawFlags);
 	}
 }
 //initializes menu with a file
-Menu::Menu(std::string path){
+Menu::Menu(std::string path) {
 	std::ifstream file(path, std::ios_base::in);
-	if(!file){ //prints error message if filepath was invalid
+	if(!file) { //prints error message if filepath was invalid
 		attrset(A_BOLD);
 		std::string errorMsg("ERROR LOADING FILE: ");
 		addnstr(errorMsg.c_str(), errorMsg.length());
@@ -135,7 +135,7 @@ Menu::Menu(std::string path){
 	
 	std::string buffer, temp;
 	this->message = DEF_MSG;
-	while(std::getline(file, temp)){
+	while(std::getline(file, temp)) {
 		buffer += temp;
 	}
 	file.close();	
@@ -147,23 +147,23 @@ Menu::Menu(std::string path){
 	this->sort();
 }
 
-Menu::~Menu(){
+Menu::~Menu() {
 }
 
 Menu::operator bool() const{
 	return run;
 }
 
-void updateConfig(){
+void updateConfig() {
 	std::ofstream file(CONF_PATH, std::ios::out);
 	file << config_xml;
 	file.close();
 	//add logic here to communicate with daemon process
 }
 
-void Menu::addItem(){
+void Menu::addItem() {
 	curs_set(1);	
-	const char* path = (std::string(HOME)+ "/.schedule_add").c_str();
+	const char* path = (std::string(HOME) + "/.schedule_add").c_str();
 	scr_dump(path);
 	chtype c;
 	std::smatch matches;
@@ -180,13 +180,13 @@ void Menu::addItem(){
 	};
 
 	std::vector<std::pair<std::string, std::smatch>> responses;
-	for(auto prompt = userPrompts.begin(); prompt != userPrompts.end(); prompt++){
+	for(auto prompt = userPrompts.begin(); prompt != userPrompts.end(); prompt++) {
 		clearScreen();
 		addstr(prompt->first.c_str());	
 		std::string response;
 		do{
 			c = getch();
-			if(special.find(c) != special.end()){
+			if(special.find(c) != special.end()) {
 				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt->first.length(), c, response);
 			}else{
 				response+=static_cast<char>(c);
@@ -195,12 +195,12 @@ void Menu::addItem(){
 		//c != newline
 		} while(c != 10);
 
-		response.erase(response.length()-1);
+		response.erase(response.length() - 1);
 		std::smatch matches;
 
 		//if answer matches the prompt's format, add it to list of responses
 
-		if(Ex::run("menu.cpp at 202", [=, &matches] () -> bool { return regex_match(response, matches, prompt->second); } )){
+		if(Ex::run("menu.cpp at 202", [=, &matches] () -> bool { return regex_match(response, matches, prompt->second); } )) {
 			responses.push_back(std::pair<std::string, std::smatch>(response, matches));
 		}
 		else {
@@ -220,7 +220,7 @@ void Menu::addItem(){
 		config_xml.allocate_node(rapidxml::node_element, "datestring", config_xml.allocate_string(responses[2].first.c_str())),
 		config_xml.allocate_node(rapidxml::node_element, "completionTime", config_xml.allocate_string(std::to_string(completionTime).c_str()))
 	};
-	for(auto node : nodes){
+	for(auto node : nodes) {
 		newItem->append_node(node);
 	}
 	config_xml.first_node()->append_node(newItem);
@@ -231,13 +231,13 @@ void Menu::addItem(){
 	curs_set(0);	
 }
 
-void Menu::update(){
+void Menu::update() {
 	this->display();
 	wmove(stdscr, 0,0);			//move cursor to top, so text gets written over	
 	wrefresh(stdscr);
 	chtype key = getch();
 	bool valid_press = true;
-	switch(key){
+	switch(key) {
 		case REMOVE_KEY:
 			remove();
 			break;
@@ -262,19 +262,30 @@ void Menu::update(){
 			break;
 	}
 
-	if(valid_press){
+	if(valid_press) {
 		this->message = DEF_MSG;	
 	}
 }
 
-void Menu::remove(){
-	menu_items.erase(menu_items.begin()+selectIndex);
-	//calculate where the arrow should appear
-	selectIndex = selectIndex >= menu_items.size() ? menu_items.size()-1 : selectIndex;
+void Menu::remove() {
+	auto root_node = config_xml.first_node();
+	auto node_to_delete = root_node->first_node("item");
+
+	if ( node_to_delete ) {
+		root_node->remove_node(node_to_delete);
+		menu_items.erase(menu_items.begin() + selectIndex);
+		//calculate where the arrow should appear
+		selectIndex = selectIndex >= menu_items.size() ? menu_items.size() - 1 : selectIndex;
+		updateConfig();
+	} else {
+		logError("Could not delete node. Check the formatting of the XML Node. This \n \
+				  might be because you tried to delete the node non-recursively");
+	}
+	
 }
 
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
-void Menu::viewMenuItem(){
+void Menu::viewMenuItem() {
 	//save screen to file and clear window
 	scr_dump((std::string(HOME) + "/.schedule").c_str());
 	do{
@@ -288,7 +299,7 @@ void Menu::viewMenuItem(){
 }
 
 //this function is called when destructing a menu and when a signal is caught.
-void Menu::exit(int sig){
+void Menu::exit(int sig) {
 	run = false;
 	std::fstream file(CONF_PATH, std::ios::out);
 	//write the xml back to the file
@@ -299,14 +310,14 @@ void Menu::exit(int sig){
 //Prints a string up to $spaces number of characters, ending with spaces if there is excess and an elipses "..." when there is not enough spaces
 //
 //delimiter defaults to ' '
-bool Menu::printField(std::string field, unsigned int spaces, char delimiter, stringtype type){
+bool Menu::printField(std::string field, unsigned int spaces, char delimiter, stringtype type) {
 	logDetail(field.c_str());
-	if(type == HEADER){
+	if(type == HEADER) {
 		std::string finished_field;
-		int heading_spacing = (spaces-field.length())/2;
-		bool odd_spacing = (spaces-field.length())%2;
+		int heading_spacing = (spaces - field.length())/2;
+		bool odd_spacing = (spaces - field.length())%2;
 		//if the field does not have even distribution of surrounding space
-		if(odd_spacing){
+		if(odd_spacing) {
 			finished_field = " ";
 		}
 		finished_field.insert(0, heading_spacing, delimiter);
@@ -318,22 +329,22 @@ bool Menu::printField(std::string field, unsigned int spaces, char delimiter, st
 		
 	bool tooBig = false;
 	std::string ending = "..."; //used if field is longer than spaces
-	if(field.length() > spaces){
+	if(field.length() > spaces) {
 		tooBig = true;
-		int beginIndex = spaces-ending.length(); //where to insert the ending
+		int beginIndex = spaces - ending.length(); //where to insert the ending
 		field.insert(beginIndex, ending);
 	}else{
 		//fills the field with spaces
-		field.append(spaces-field.length(),delimiter);
+		field.append(spaces - field.length(),delimiter);
 	}
 //	logDetail(field.c_str());
 	addnstr(field.c_str(), spaces);	
 	return tooBig;
 }
 
-void Menu::printMenu(){
+void Menu::printMenu() {
 	//prints basic menu
-	if(!menu_items.empty()){
+	if(!menu_items.empty()) {
 		print("  ");
 		printField("NAME", NAME_SPACING, ' ', HEADER); print("|");
 		printField("DESCRIPTION", DESC_SPACING, ' ', HEADER); print("|");
@@ -341,8 +352,8 @@ void Menu::printMenu(){
 		printField("DURATION ( hh:mm:ss )", DEBUG_SPACING, ' ', HEADER);
 		addch('\n');
 	}
-	for(auto item = menu_items.begin(); item != menu_items.end(); item++){	
-		if(item-menu_items.begin() == selectIndex && !menu_items.empty()){
+	for(auto item = menu_items.begin(); item != menu_items.end(); item++) {	
+		if(item - menu_items.begin() == selectIndex && !menu_items.empty()) {
 			//print arrow indicating current item
 			addnstr("->", 2);
 			attrset(A_STANDOUT);
@@ -363,7 +374,7 @@ void Menu::printMenu(){
 	return;
 }
 
-void Menu::display(){
+void Menu::display() {
 	//move cursor to top-left of window and erase all contents
 	clearScreen();
 	//print a message and the menu
@@ -371,32 +382,32 @@ void Menu::display(){
 	printMenu();
 }
 //change menu selection
-void Menu::up(){
+void Menu::up() {
 	if(selectIndex > 0)
 		selectIndex--;
 }
 
 
 //change menu selection
-void Menu::down(){
-	if(selectIndex+1 < menu_items.size())
+void Menu::down() {
+	if(selectIndex + 1 < menu_items.size())
 		selectIndex++;
 }
 
-void expandDateString(std::string& datestring){
+void expandDateString(std::string& datestring) {
 	//two iterators start at beginning of datestring
 	int spaceCount = 0;
 	std::string::iterator first = datestring.begin(); 
 	std::string::iterator second = first;
 	int firstSpace = datestring.find(' ');
 
-	if(datestring[firstSpace + 1] == ' '){
+	if(datestring[firstSpace + 1] == ' ') {
 		datestring.erase(firstSpace, 1);
 	}
 
-	while(second != datestring.end()){
-		if(*second == '/' || *second == ':' || *second == ' '){
-			if(second-first-spaceCount == 1){
+	while(second != datestring.end()) {
+		if(*second == '/' || *second == ':' || *second == ' ') {
+			if(second - first - spaceCount == 1) {
 				//insert leading zero if its missing
 				datestring.insert(first, '0');
 				second = first = datestring.begin();
@@ -404,7 +415,7 @@ void expandDateString(std::string& datestring){
 				//all good, move past the slash
 				first = ++second;
 			}
-			if(*second == ' '){
+			if(*second == ' ') {
 				spaceCount++;
 			}
 		}

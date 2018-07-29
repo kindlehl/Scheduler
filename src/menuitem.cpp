@@ -111,20 +111,23 @@ std::string MenuItem::timeToCompleteString(){
 
 	std::string h, m, s;
 
-	int hoursLeft = time_left/secondsPerHour;
+	int hoursLeft = time_left / secondsPerHour;
 	time_left %= secondsPerHour;
 
-	int minutesLeft = time_left/secondsPerMinute;
+	int minutesLeft = time_left / secondsPerMinute;
 	time_left %= secondsPerMinute;
 
 	int secondsLeft = time_left;
-	if ( hoursLeft  < 10 ){
+
+	//these if statments check for single digits
+	//it turns 2:9:15 to 02:09:15
+	if ( hoursLeft  <= 9 ){
 		h = "0";
 	}
-	if ( minutesLeft  < 10 ){
+	if ( minutesLeft  <= 9 ){
 		m = "0";
 	}
-	if ( secondsLeft  < 10 ){
+	if ( secondsLeft  <= 9 ){
 		s = "0";
 	}
 		
@@ -141,13 +144,13 @@ std::string MenuItem::timeLeftString(){
 	int secondsPerHour = 60 * 60;
 	int secondsPerMinute = 60;
 
-	int daysLeft = time_left/secondsPerDay;
+	int daysLeft = time_left / secondsPerDay;
 	time_left %= secondsPerDay;
 
-	int hoursLeft = time_left/secondsPerHour;
+	int hoursLeft = time_left / secondsPerHour;
 	time_left %= secondsPerHour;
 
-	int minutesLeft = time_left/secondsPerMinute;
+	int minutesLeft = time_left / secondsPerMinute;
 	time_left %= secondsPerMinute;
 
 	int secondsLeft = time_left;
