@@ -287,15 +287,15 @@ void Menu::remove() {
 //changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
 void Menu::viewMenuItem() {
 	//save screen to file and clear window
-	scr_dump((std::string(HOME) + "/.schedule").c_str());
+	scr_dump((std::string(HOME) + "/.schedule_dump").c_str());
 	do{
 		clearScreen();
-		printField(menu_items[selectIndex].name() + "\n", width);
-		printField(menu_items[selectIndex].description() + "\n", width);
-		printField(std::to_string(menu_items[selectIndex].timeRemaining()) + "\n", width); 
+		addstr(menu_items[selectIndex].name().c_str() + "\n");
+		addstr(menu_items[selectIndex].description().c_str() + "\n");
+		addstr(std::to_string(menu_items[selectIndex].timeRemaining()).c_str() + "\n");
 	} while(getch() != 'q');
 	clearScreen();
-	scr_restore((std::string(HOME) + "/.schedule").c_str());
+	scr_restore((std::string(HOME) + "/.schedule_dump").c_str());
 }
 
 //this function is called when destructing a menu and when a signal is caught.
