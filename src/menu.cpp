@@ -290,9 +290,9 @@ void Menu::viewMenuItem() {
 	scr_dump((std::string(HOME) + "/.schedule_dump").c_str());
 	do{
 		clearScreen();
-		addstr(menu_items[selectIndex].name().c_str() + "\n");
-		addstr(menu_items[selectIndex].description().c_str() + "\n");
-		addstr(std::to_string(menu_items[selectIndex].timeRemaining()).c_str() + "\n");
+		addstr(menu_items[selectIndex].name().c_str()); addstr("\n");
+		addstr(menu_items[selectIndex].description().c_str()); addstr("\n");
+		addstr(std::to_string(menu_items[selectIndex].timeRemaining()).c_str()); addstr("\n");
 	} while(getch() != 'q');
 	clearScreen();
 	scr_restore((std::string(HOME) + "/.schedule_dump").c_str());
