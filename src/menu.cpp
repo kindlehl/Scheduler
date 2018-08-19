@@ -288,11 +288,16 @@ void Menu::remove() {
 void Menu::viewMenuItem() {
 	//save screen to file and clear window
 	scr_dump((std::string(HOME) + "/.schedule_dump").c_str());
+
 	do{
 		clearScreen();
-		addstr(menu_items[selectIndex].name().c_str()); addstr("\n");
-		addstr(menu_items[selectIndex].description().c_str()); addstr("\n");
-		addstr(std::to_string(menu_items[selectIndex].timeRemaining()).c_str()); addstr("\n");
+		std::string description = std::string("Description: ") + menu_items[selectIndex].description();
+		std::string name = std::string("Name: ") + menu_items[selectIndex].name();
+		std::string time_left = std::string("Time Left: ") + std::to_string(menu_items[selectIndex].timeRemaining());
+		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
+		addstr(name.c_str()); addstr("\n");
+		addstr(description.c_str()); addstr("\n");
+		addstr(time_to_complete.c_str()); addstr("\n");
 	} while(getch() != 'q');
 	clearScreen();
 	scr_restore((std::string(HOME) + "/.schedule_dump").c_str());
