@@ -42,14 +42,18 @@ class MenuItem{
 		std::time_t time() const;
 		void setTime(std::time_t);
 
+		std::string hookExpire() const;
+
 		double priority();
 		std::string timeLeftString();
 		std::string timeToCompleteString();
+
 		int ID() const;
 	private:
 		int m_id;
 		bool m_selected;
 		static int numMenus;
+		std::string m_hook_expire;
 		std::string m_datestring;
 		std::string m_description, m_name;
 		std::time_t m_time_due, m_time_completion;	

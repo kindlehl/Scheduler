@@ -161,6 +161,15 @@ void updateConfig() {
 	//add logic here to communicate with daemon process
 }
 
+// This enum represents the indexes into the responses variable just above this comment. I know this could be done with a c++11 array, but this is easier to maintain while its early in production
+enum FieldMatches {
+	NAME,
+	DESCRIPTION,
+	DATESTRING,
+	COMPLETION_TIME,
+	HOOK_EXPIRE
+};
+
 void Menu::addItem() {
 	curs_set(1);	
 	const char* path = (std::string(HOME) + "/.schedule_add").c_str();
@@ -170,16 +179,19 @@ void Menu::addItem() {
 	std::regex match_anything (".*");
 	std::regex match_dates ("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");
 	std::regex match_times ("([1-9]\\d*[hdm]).*");
+	std::regex match_path ("([-/a-zA-Z_.]*[-a-zA-Z_.]+)");
+
+	std::vector<std::pair<std::string, std::smatch>> responses;
 
 	//vector of pairs of form - {"Prompt Text that shows before the cursor", "Vector of Regular Expressions that user's input must match"}
 	std::vector<std::pair<std::string, std::regex> > userPrompts = {
-		{"Please Enter a Description for This Event: ", match_anything },
 		{"Please Enter a Name for This Event: ", match_anything },
+		{"Please Enter a Description for This Event: ", match_anything },
 		{"Please Enter a Due Date (MM/DD/YY HH:MM): ", match_dates },	
-		{"Please Enter the time this will take (number followed by m,h,d): ", match_times}
+		{"Please Enter the time this will take (number followed by m,h,d): ", match_times},
+		{"Please Enter the path to a script to execute when an item expires", match_path}
 	};
 
-	std::vector<std::pair<std::string, std::smatch>> responses;
 	for(auto prompt = userPrompts.begin(); prompt != userPrompts.end(); prompt++) {
 		clearScreen();
 		addstr(prompt->first.c_str());	
@@ -210,15 +222,17 @@ void Menu::addItem() {
 	}
 	//construct item and add to list
 	
-	auto eventTime = createDueTime(responses[2].first, "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d).*");	
-	std::string completionMatch = responses[3].second[1];
+	std::string completionMatch = responses[COMPLETION_TIME].first;
+	// THIS IS uNUSUED // auto eventTime = createDueTime(responses[DATESTRING].first, "(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d).*");	
 	auto completionTime = createCompletionTime(completionMatch);	
 	auto newItem = config_xml.allocate_node(rapidxml::node_element, "item");
+
 	std::vector<rapidxml::xml_node<>*> nodes = {
-		config_xml.allocate_node(rapidxml::node_element, "description", config_xml.allocate_string(responses[0].first.c_str())),
-		config_xml.allocate_node(rapidxml::node_element, "name", config_xml.allocate_string(responses[1].first.c_str())),
-		config_xml.allocate_node(rapidxml::node_element, "datestring", config_xml.allocate_string(responses[2].first.c_str())),
-		config_xml.allocate_node(rapidxml::node_element, "completionTime", config_xml.allocate_string(std::to_string(completionTime).c_str()))
+		config_xml.allocate_node(rapidxml::node_element, "name", config_xml.allocate_string(responses[NAME].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "description", config_xml.allocate_string(responses[DESCRIPTION].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "datestring", config_xml.allocate_string(responses[DATESTRING].first.c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "completionTime", config_xml.allocate_string(std::to_string(completionTime).c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "HOOK_EXPIRE", config_xml.allocate_string(responses[HOOK_EXPIRE].first.c_str()))
 	};
 	for(auto node : nodes) {
 		newItem->append_node(node);
@@ -295,9 +309,12 @@ void Menu::viewMenuItem() {
 		std::string name = std::string("Name: ") + menu_items[selectIndex].name();
 		std::string time_left = std::string("Time Left: ") + std::to_string(menu_items[selectIndex].timeRemaining());
 		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
+		std::string hook_expire = std::string("HOOK_EXPIRE: ") + menu_items[selectIndex].hookExpire();
 		addstr(name.c_str()); addstr("\n");
 		addstr(description.c_str()); addstr("\n");
+		addstr(time_left.c_str()); addstr("\n");
 		addstr(time_to_complete.c_str()); addstr("\n");
+		addstr(hook_expire.c_str()); addstr("\n");
 	} while(getch() != 'q');
 	clearScreen();
 	scr_restore((std::string(HOME) + "/.schedule_dump").c_str());
@@ -348,13 +365,13 @@ bool Menu::printField(std::string field, unsigned int spaces, char delimiter, st
 }
 
 void Menu::printMenu() {
-	//prints basic menu
+	//prints basic menu headers
 	if(!menu_items.empty()) {
 		print("  ");
-		printField("NAME", NAME_SPACING, ' ', HEADER); print("|");
-		printField("DESCRIPTION", DESC_SPACING, ' ', HEADER); print("|");
-		printField("DATE", DATE_SPACING, ' ', HEADER); print("|");
-		printField("DURATION ( hh:mm:ss )", DEBUG_SPACING, ' ', HEADER);
+		printField("NAME", NAME_SPACING, ' ', NORMAL); print("|");
+		printField("DESCRIPTION", DESC_SPACING, ' ', NORMAL); print("|");
+		printField("DATE", DATE_SPACING, ' ', NORMAL); print("|");
+		printField("DURATION ( hh:mm:ss )", DEBUG_SPACING, ' ', NORMAL);
 		addch('\n');
 	}
 	for(auto item = menu_items.begin(); item != menu_items.end(); item++) {	

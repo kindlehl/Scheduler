@@ -22,10 +22,11 @@ MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_description = item->first_node("description")->value(); //extract description
 	m_datestring =  item->first_node("datestring")->value();//extract date
 	m_time_completion =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
+	m_hook_expire =  item->first_node("HOOK_EXPIRE")->value();//extract date
 	m_id = numMenus++;
 }
 
-MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due), m_time_completion(m.m_time_completion)
+MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due), m_time_completion(m.m_time_completion), m_hook_expire(m.m_hook_expire)
 {
 } 
 
@@ -37,6 +38,7 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 	this->m_datestring = tempItem.datestring();
 	this->m_name = tempItem.m_name;
 	this->m_description = tempItem.m_description;
+	this->m_hook_expire = tempItem.m_hook_expire;
 	return *this;
 }
 
@@ -102,6 +104,10 @@ std::string MenuItem::description() const{
 
 void MenuItem::setDescription(std::string desc){
 	m_description = desc;
+}
+
+std::string MenuItem::hookExpire() const {
+	return m_hook_expire;
 }
 
 std::string MenuItem::timeToCompleteString(){

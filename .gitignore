@@ -13,3 +13,4 @@ src/compile*
 projectLog
 
 .clang_complete
+Scheduler
