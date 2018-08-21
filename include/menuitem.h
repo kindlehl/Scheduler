@@ -12,7 +12,7 @@
 #include <ctime>
 #include <fstream>
 #include <exception>
-#include "../lib/rapidxml.hpp"
+#include <rapidxml/rapidxml.hpp>
 
 class MenuItem{
 		

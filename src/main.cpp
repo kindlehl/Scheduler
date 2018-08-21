@@ -4,7 +4,7 @@
 #include <curses.h>
 #include <signal.h>
 #include <functional>
-#include "../lib/rapidxml.hpp"
+#include <rapidxml/rapidxml.hpp>
 #include <sys/stat.h>
 
 
