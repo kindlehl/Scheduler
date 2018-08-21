@@ -12,7 +12,10 @@ to float to the top of the list, because it is important to complete them sooner
 
 ## __Build__  
 
-`$ make -B`  
+`$ make `  
+`$ make daemon`  
+
+This will generate executables scheduler and scheduled respectively
 
 ## __Controls__  
 
