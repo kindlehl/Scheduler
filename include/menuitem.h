@@ -14,10 +14,13 @@
 #include <exception>
 #include <rapidxml/rapidxml.hpp>
 
+class Menu;
+
 class MenuItem{
+	friend class Menu; //debugging purposes for now
 		
 	public:
-		MenuItem();
+		MenuItem() = delete;
 		MenuItem(const MenuItem &m);	
 		MenuItem& operator=(const MenuItem &m);
 		bool operator<(const MenuItem& m) const;

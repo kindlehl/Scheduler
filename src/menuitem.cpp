@@ -17,12 +17,16 @@ int MenuItem::numMenus = 0;
  *	
  * </username>
  */
+
+time_t dateToSeconds(std::string datestring);
+
 MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_name = item->first_node("name")->value(); //extract name	
 	m_description = item->first_node("description")->value(); //extract description
 	m_datestring =  item->first_node("datestring")->value();//extract date
 	m_time_completion =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
 	m_hook_expire =  item->first_node("HOOK_EXPIRE")->value();//extract date
+	m_time_due = dateToSeconds(m_datestring);
 	m_id = numMenus++;
 }
 
@@ -58,7 +62,7 @@ bool MenuItem::operator<(const MenuItem& m) const {
 std::time_t MenuItem::timeRemaining() const {
 	std::time_t curr;
 	std::time(&curr);
-	return std::difftime(m_time_due, curr);
+	return std::difftime(curr, m_time_due);
 }
 
 double MenuItem::priority() const {
@@ -171,4 +175,37 @@ std::string MenuItem::timeLeftString() const {
 
 	return std::to_string(daysLeft) + " days and " + std::to_string(hoursLeft) + ":" + std::to_string(minutesLeft) + ":" + std::to_string(secondsLeft);
 
+}
+
+//transforms string in form MM/DD/YY HH:MM to epoch time
+time_t dateToSeconds(std::string datestring) {
+	char tmp[3] = {0};
+	struct tm t;
+
+	//copy month into t
+	strncpy(tmp, datestring.c_str(), 2);
+	t.tm_mon = atoi(tmp) - 1;
+	std::cout << std::stoi(tmp) <<std::endl;
+
+	//copy day into t
+	strncpy(tmp, datestring.c_str() + 3, 2);
+	t.tm_mday = atoi(tmp);
+	std::cout << std::stoi(tmp) <<std::endl;
+
+	//copy year into t
+	strncpy(tmp, datestring.c_str() + 6, 2);
+	t.tm_year = atoi(tmp) + 100;
+	std::cout << std::stoi(tmp) <<std::endl;
+
+	//copy hour into t
+	strncpy(tmp, datestring.c_str() + 9, 2);
+	t.tm_hour = atoi(tmp);
+	std::cout << std::stoi(tmp) <<std::endl;
+
+	//copy minute into t
+	strncpy(tmp, datestring.c_str() + 12, 2);
+	t.tm_min = atoi(tmp);
+	std::cout << std::stoi(tmp) <<std::endl;
+
+	return mktime(&t);
 }

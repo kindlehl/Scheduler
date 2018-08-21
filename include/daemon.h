@@ -4,20 +4,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <array>
 #include <sstream>
 #include <sys/stat.h>
 
-#define PASSWD_STR_AT(x) (passwd.at(int(x)))
-#define PASSWD_INT_AT(x) (stoi(passwd.at(int(x))))
-
-std::string extract_string(std::istream& file){
-	std::string contents, line;
-	while(std::getline(file, line)){
-		contents += line;
-	}
-	return contents;
-}
+std::string extract_string(std::istream& file);
 
 enum error_state {
 	FAILURE = -1,

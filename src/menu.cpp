@@ -1,4 +1,7 @@
 #include "../include/menu.h"
+
+#define ALT_BACKSPACE 127 //this catches non-standard backspace signals (^?)
+
 //must use global in main, since multiple calls to getenv() actually modify the value returned for some 
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
 extern std::string home;
@@ -13,7 +16,7 @@ const unsigned int QUIT_KEY = 'q';
 const unsigned int VIEW_KEY = 'v';
 
 //use this set to catch special characters when reading input
-std::set<chtype> special = {KEY_DC, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
+std::set<chtype> special = {KEY_DC, ALT_BACKSPACE, KEY_BACKSPACE, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN};
 
 //initalization of static member
 bool Menu::run = true;
@@ -97,6 +100,7 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			echo();
 			break;
 		case(KEY_BACKSPACE):
+		case(ALT_BACKSPACE):
 			//move cursor - most compact way to write... uses short-circuit evaluation to modify or keep the
 			//current value for y, while adjusting x to what it needs to be. However, it requires this long
 			//comment to explain it. Maybe it would have been better to be more explicit.
@@ -327,12 +331,14 @@ void Menu::viewMenuItem() {
 
 		std::string description = std::string("Description: ") + menu_items[selectIndex].description();
 		std::string name = std::string("Name: ") + menu_items[selectIndex].name();
+		std::string m_time_due = std::string("m_time_due: ") + std::to_string(menu_items[selectIndex].m_time_due);
 		std::string time_left = std::string("Time Left: ") + std::to_string(menu_items[selectIndex].timeRemaining());
 		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
 		std::string hook_expire = std::string("HOOK_EXPIRE: ") + menu_items[selectIndex].hookExpire();
 
 		addstr(name.c_str()); addstr("\n");
 		addstr(description.c_str()); addstr("\n");
+		addstr(m_time_due.c_str()); addstr("\n");
 		addstr(time_left.c_str()); addstr("\n");
 		addstr(time_to_complete.c_str()); addstr("\n");
 		addstr(hook_expire.c_str()); addstr("\n");
