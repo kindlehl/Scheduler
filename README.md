@@ -8,6 +8,7 @@ to float to the top of the list, because it is important to complete them sooner
 ## __Dependencies__  
 
 * ncurses  
+* rapidxml  
 
 ## __Build__  
 
