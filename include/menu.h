@@ -11,7 +11,7 @@
 #define DESC_PORT .29f
 #define DATE_PORT .21f
 #define DEBUG_PORT .20f
-#define DEF_MSG "Welcome to Scheduler, the software that does the thinking for you! Use jk to navigate items, a and r to add or remove items, v to view items in more detail, and q to quit\n"; 
+#define WELCOME_MSG "Welcome to Scheduler, the software that does the thinking for you! Use jk to navigate items, a and r to add or remove items, v to view items in more detail, and q to quit\n"
 
 //these macros give the number of cells in the terminal that each piece of the menu should take up when printing. This way ensures that the program scales with window resizes.
 #define NAME_SPACING NAME_PORT*(width-USED_SPACE)
@@ -41,9 +41,10 @@
 std::time_t createTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);
 
-extern char* HOME;
-extern char* CONF_PATH;
+extern std::string homedir;
+extern std::string conf_path;
 extern char* config_text;
+
 extern rapidxml::xml_document<> config_xml;
 
 void updateConfig();

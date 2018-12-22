@@ -4,7 +4,7 @@
 #include <syslog.h>
 
 static void initLog(const char* ident = "Scheduler: "){
-	openlog(ident, LOG_INFO, NULL);
+	openlog(ident, LOG_INFO, 0);
 	syslog(LOG_ERR | LOG_USER, "Scheduler has been started");
 }
 

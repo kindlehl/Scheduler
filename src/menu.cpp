@@ -1,7 +1,7 @@
 #include "../include/menu.h"
 //must use global in main, since multiple calls to getenv() actually modify the value returned for some 
 //weird reason. It is actually in the getenv() documentation. MAKES NO SENSE
-extern char* HOME;
+extern std::string home;
 
 /* These keybindings are intended to be modified by a config file eventually. Their definitions are mean to be taken literally 
  */
@@ -123,26 +123,37 @@ static void print(std::string q, int drawFlags = A_NORMAL) {
 	}
 }
 //initializes menu with a file
-Menu::Menu(std::string path) {
+Menu::Menu(std::string path) : message(WELCOME_MSG) {
 	std::ifstream file(path, std::ios_base::in);
 	if(!file) { //prints error message if filepath was invalid
+
 		attrset(A_BOLD);
 		std::string errorMsg("ERROR LOADING FILE: ");
 		addnstr(errorMsg.c_str(), errorMsg.length());
 		addnstr((path + "\n").c_str(), path.length());
 		attroff(A_BOLD);
+
+		exit(1);
 	}
 	
 	std::string buffer, temp;
-	this->message = DEF_MSG;
+
+	//read entire file into 'buffer'
 	while(std::getline(file, temp)) {
 		buffer += temp;
 	}
+
 	file.close();	
+
+	//update global string and xml_document object
 	config_text = config_xml.allocate_string(buffer.c_str());
 	config_xml.parse<0>(config_text);
-	for(auto xmlnode = config_xml.first_node()->first_node(); xmlnode; xmlnode = xmlnode->next_sibling())
-		menu_items.push_back(MenuItem(xmlnode));
+
+	auto root_xml_node = config_xml.first_node();
+
+	for(auto item_node = root_xml_node->first_node(); item_node != NULL; item_node = item_node->next_sibling())
+		menu_items.push_back(MenuItem(item_node));
+
 	getmaxyx(stdscr, height, width);
 	this->sort();
 }
@@ -155,7 +166,7 @@ Menu::operator bool() const{
 }
 
 void updateConfig() {
-	std::ofstream file(CONF_PATH, std::ios::out);
+	std::ofstream file(conf_path, std::ios::out);
 	file << config_xml;
 	file.close();
 	//add logic here to communicate with daemon process
@@ -172,18 +183,19 @@ enum FieldMatches {
 
 void Menu::addItem() {
 	curs_set(1);	
-	const char* path = (std::string(HOME) + "/.schedule_add").c_str();
-	scr_dump(path);
-	chtype c;
+	const std::string path = homedir + "/.schedule_add";
+	scr_dump(path.c_str());
 	std::smatch matches;
-	std::regex match_anything (".*");
-	std::regex match_dates ("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*");
-	std::regex match_times ("([1-9]\\d*[hdm]).*");
-	std::regex match_path ("([-/a-zA-Z_.]*[-a-zA-Z_.]+)");
+	std::regex match_anything (".*"); //matches anything and everything
+	std::regex match_dates ("(\\d\\d?)/(\\d\\d?)/(\\d\\d) (\\d\\d?)\\:(\\d\\d)\\W*"); //matches dates + times in MM/DD/YYYY HH:MM format
+	std::regex match_times ("([1-9]\\d*[hdm]).*"); //matches time string such as 2h or 2h 55m
+	std::regex match_path ("([-/a-zA-Z_.]*[-a-zA-Z_.]+)"); //matches a filesystem path for linux system
 
+	//pairs of answers along with the regex matches that they yield
 	std::vector<std::pair<std::string, std::smatch>> responses;
 
-	//vector of pairs of form - {"Prompt Text that shows before the cursor", "Vector of Regular Expressions that user's input must match"}
+	//pairs of prompts, where pair.first is the prompt to give the user and pair.second contains the regex to 
+	//match against user inputs
 	std::vector<std::pair<std::string, std::regex> > userPrompts = {
 		{"Please Enter a Name for This Event: ", match_anything },
 		{"Please Enter a Description for This Event: ", match_anything },
@@ -193,33 +205,40 @@ void Menu::addItem() {
 	};
 
 	for(auto prompt = userPrompts.begin(); prompt != userPrompts.end(); prompt++) {
+		//wipe screen and print prompt
 		clearScreen();
 		addstr(prompt->first.c_str());	
+
 		std::string response;
+
+		chtype c;
+
 		do{
+			//get char
 			c = getch();
-			if(special.find(c) != special.end()) {
+			if(special.find(c) != special.end()) { //pass off control to handler function if c is a special control character
 				handleSpecialKeys(getmaxx(stdscr), getmaxy(stdscr), getcurx(stdscr), getcury(stdscr), prompt->first.length(), c, response);
-			}else{
-				response+=static_cast<char>(c);
+			}else if (c != 10){
+				//add to response and blit to screen
+				response += static_cast<char>(c);
 				addch(c);
 			}
 		//c != newline
 		} while(c != 10);
 
-		response.erase(response.length() - 1);
 		std::smatch matches;
 
 		//if answer matches the prompt's format, add it to list of responses
-
 		if(Ex::run("menu.cpp at 202", [=, &matches] () -> bool { return regex_match(response, matches, prompt->second); } )) {
 			responses.push_back(std::pair<std::string, std::smatch>(response, matches));
 		}
+		//if not, prompt again
 		else {
 			prompt--;
 			continue;
 		}		
 	}
+
 	//construct item and add to list
 	
 	std::string completionMatch = responses[COMPLETION_TIME].first;
@@ -241,7 +260,7 @@ void Menu::addItem() {
 	menu_items.push_back(MenuItem(newItem));
 	updateConfig();
 	this->sort();
-	scr_restore(path);
+	scr_restore(path.c_str());
 	curs_set(0);	
 }
 
@@ -277,16 +296,16 @@ void Menu::update() {
 	}
 
 	if(valid_press) {
-		this->message = DEF_MSG;	
+		this->message = WELCOME_MSG;	
 	}
 }
 
 void Menu::remove() {
-	auto root_node = config_xml.first_node();
-	auto node_to_delete = root_node->first_node("item");
+	auto root_xml_node = config_xml.first_node();
+	auto item_node_to_delete = root_xml_node->first_node("item");
 
-	if ( node_to_delete ) {
-		root_node->remove_node(node_to_delete);
+	if ( item_node_to_delete ) {
+		root_xml_node->remove_node(item_node_to_delete);
 		menu_items.erase(menu_items.begin() + selectIndex);
 		//calculate where the arrow should appear
 		selectIndex = selectIndex >= menu_items.size() ? menu_items.size() - 1 : selectIndex;
@@ -298,32 +317,39 @@ void Menu::remove() {
 	
 }
 
-//changes the view to display the detailed description of an item along with other details. Dumps the window into a file, then restores the file after the user does not want to view the event anymore.
+//changes the view to display the detailed description of an item along with other details. Dumps the window 
+//into a file, then restores the file after the user does not want to view the event anymore.
 void Menu::viewMenuItem() {
 	//save screen to file and clear window
-	scr_dump((std::string(HOME) + "/.schedule_dump").c_str());
+	scr_dump((homedir + "/.schedule_dump").c_str());
 
 	do{
 		clearScreen();
+
 		std::string description = std::string("Description: ") + menu_items[selectIndex].description();
 		std::string name = std::string("Name: ") + menu_items[selectIndex].name();
 		std::string time_left = std::string("Time Left: ") + std::to_string(menu_items[selectIndex].timeRemaining());
 		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
 		std::string hook_expire = std::string("HOOK_EXPIRE: ") + menu_items[selectIndex].hookExpire();
+
 		addstr(name.c_str()); addstr("\n");
 		addstr(description.c_str()); addstr("\n");
 		addstr(time_left.c_str()); addstr("\n");
 		addstr(time_to_complete.c_str()); addstr("\n");
 		addstr(hook_expire.c_str()); addstr("\n");
+
+		refresh();
+
 	} while(getch() != 'q');
+
 	clearScreen();
-	scr_restore((std::string(HOME) + "/.schedule_dump").c_str());
+	scr_restore((homedir + "/.schedule_dump").c_str());
 }
 
 //this function is called when destructing a menu and when a signal is caught.
 void Menu::exit(int sig) {
 	run = false;
-	std::fstream file(CONF_PATH, std::ios::out);
+	std::fstream file(conf_path, std::ios::out);
 	//write the xml back to the file
 	file << config_xml;
 	file.close();

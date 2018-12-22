@@ -7,40 +7,46 @@
 #include <rapidxml/rapidxml.hpp>
 #include <sys/stat.h>
 
+using namespace std;
 
-char* HOME;
-char* CONF_PATH;
+string homedir;
+string conf_path;
 char* config_text;
+
 rapidxml::xml_document<> config_xml;
 
-using namespace std;
 
 void sigintHandler(int);
 //points to menu that will be written to file
 
 
 int main(){
-	HOME = getenv("HOME");
-    CONF_PATH = (char*)malloc(strlen(HOME) + strlen("/.schedule") + 1);
-	CONF_PATH[0]='\0';
+	//initialize global paths
+	homedir = string(getenv("HOME"));
+    conf_path = homedir + "/.schedule";
+
 	initLog();
 
-	strcat(CONF_PATH, HOME);
-	strcat(CONF_PATH, "/.schedule");
 	struct stat file_info;
-	if(stat(CONF_PATH, &file_info)){//true if config file does not exist
-		ofstream configFile(CONF_PATH, ios::out);
+
+	if(stat(conf_path.c_str(), &file_info)){ //true if config file does not exist
+		ofstream configFile(conf_path.c_str(), ios::out);
+		//create bare-bones XML file
 		configFile << "<items>\n</items>";
 		configFile.close();
 	}
+
 	initscr();	
 	noecho();
 	keypad(stdscr, TRUE);
 	curs_set(0);
-	Menu mainMenu(CONF_PATH);
+
+	Menu mainMenu(conf_path);
+
 	//signal(SIGINT, sigintHandler);
 	while(mainMenu)
 		mainMenu.update();
+
 	endwin();
 	return 0;
 }

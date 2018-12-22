@@ -53,10 +53,12 @@ class MenuItem{
 		int m_id;
 		bool m_selected;
 		static int numMenus;
-		std::string m_hook_expire;
 		std::string m_datestring;
-		std::string m_description, m_name;
-		std::time_t m_time_due, m_time_completion;	
+		std::string m_description;
+		std::string m_hook_expire;
+		std::string m_name;
+		std::time_t m_time_completion;	
+		std::time_t m_time_due;	
 };
 
 #endif 
