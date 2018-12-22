@@ -44,19 +44,21 @@ class MenuItem{
 
 		std::string hookExpire() const;
 
-		double priority();
-		std::string timeLeftString();
-		std::string timeToCompleteString();
+		double priority() const;
+		std::string timeLeftString() const;
+		std::string timeToCompleteString() const;
 
 		int ID() const;
 	private:
-		int m_id;
 		bool m_selected;
+		int m_id;
 		static int numMenus;
+
 		std::string m_datestring;
 		std::string m_description;
 		std::string m_hook_expire;
 		std::string m_name;
+
 		std::time_t m_time_completion;	
 		std::time_t m_time_due;	
 };

@@ -26,7 +26,15 @@ MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_id = numMenus++;
 }
 
-MenuItem::MenuItem(const MenuItem &m): m_id(m.m_id), m_selected(m.m_selected), m_datestring(m.m_datestring),m_description(m.m_description), m_name(m.m_name), m_time_due(m.m_time_due), m_time_completion(m.m_time_completion), m_hook_expire(m.m_hook_expire)
+MenuItem::MenuItem(const MenuItem &m) : 
+	m_id(m.m_id),
+	m_selected(m.m_selected),
+	m_datestring(m.m_datestring),
+	m_description(m.m_description),
+	m_name(m.m_name),
+	m_time_due(m.m_time_due),
+	m_time_completion(m.m_time_completion),
+	m_hook_expire(m.m_hook_expire)
 {
 } 
 
@@ -42,22 +50,22 @@ MenuItem& MenuItem::operator=(const MenuItem &m){
 	return *this;
 }
 
-bool MenuItem::operator<(const MenuItem& m) const{
+bool MenuItem::operator<(const MenuItem& m) const {
 	return this->timeRemaining() < m.timeRemaining();		//used by std::sort 
 }
 
 //returns remaining time in seconds
-std::time_t MenuItem::timeRemaining() const{
+std::time_t MenuItem::timeRemaining() const {
 	std::time_t curr;
 	std::time(&curr);
 	return std::difftime(m_time_due, curr);
 }
 
-double MenuItem::priority(){
+double MenuItem::priority() const {
 	return timeRemaining()/timeToComplete();
 }
 
-bool MenuItem::active() const{
+bool MenuItem::active() const {
 	return m_selected;
 }
 
@@ -86,7 +94,7 @@ std::time_t MenuItem::time() const{
 	return m_time_due;
 }
 
-std::time_t MenuItem::timeToComplete() const{
+std::time_t MenuItem::timeToComplete() const {
 	return m_time_completion;
 }
 
@@ -110,7 +118,7 @@ std::string MenuItem::hookExpire() const {
 	return m_hook_expire;
 }
 
-std::string MenuItem::timeToCompleteString(){
+std::string MenuItem::timeToCompleteString() const {
 	std::time_t time_left = this->timeToComplete();
 	int secondsPerHour = 60 * 60;
 	int secondsPerMinute = 60;
@@ -144,7 +152,7 @@ std::string MenuItem::timeToCompleteString(){
 	return h + ":" + m + ":" + s;
 }
 
-std::string MenuItem::timeLeftString(){
+std::string MenuItem::timeLeftString() const {
 	std::time_t time_left = this->timeRemaining();
 	int secondsPerDay = 60 * 60 * 24;
 	int secondsPerHour = 60 * 60;

@@ -44,7 +44,6 @@ std::time_t createDueTime(std::string& s, std::string regexp) {
 }
 
 std::time_t createCompletionTime(std::string& s) {
-	time_t seconds = 0;
 	char suffix = *(s.end()-1);
 	int multiplier = 0;
 	switch(suffix) {
@@ -101,7 +100,7 @@ static void handleSpecialKeys(int maxx, int maxy, int x, int y, int promptLen, c
 			//move cursor - most compact way to write... uses short-circuit evaluation to modify or keep the
 			//current value for y, while adjusting x to what it needs to be. However, it requires this long
 			//comment to explain it. Maybe it would have been better to be more explicit.
-			x = (x == 0 && (y = y - 1) >= str.length()/maxx) ? maxx - 1 : x - 1;
+			x = (x == 0 && static_cast<unsigned long int>(y = y - 1) >= str.length()/maxx) ? maxx - 1 : x - 1;
 			move(y, x);
 			if(y * maxx + x < promptLen) {
 				x = promptLen;

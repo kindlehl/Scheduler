@@ -7,7 +7,6 @@
 
 int main (int argc, char** argv){
 	std::string ident = "Scheduled";
-	initLog();
 	int cpid = fork();
 	if (cpid < 0){
 		logError("Process failed to fork");

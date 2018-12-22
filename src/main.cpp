@@ -1,11 +1,12 @@
 #include <iostream>
-#include "../include/menu.h"
-#include "../include/logger.h"
 #include <curses.h>
 #include <signal.h>
 #include <functional>
 #include <rapidxml/rapidxml.hpp>
 #include <sys/stat.h>
+
+#include "../include/menu.h"
+#include "../include/logger.h"
 
 using namespace std;
 
@@ -24,8 +25,6 @@ int main(){
 	//initialize global paths
 	homedir = string(getenv("HOME"));
     conf_path = homedir + "/.schedule";
-
-	initLog();
 
 	struct stat file_info;
 

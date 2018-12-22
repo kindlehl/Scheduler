@@ -41,7 +41,7 @@ class Profile{
 			Profile(const Profile&);
 
 			MenuItem& next() { return items[iter_index++]; }
-			bool moreItems() { return iter_index < items.size() - 1 || (iter_index = 0); }
+			bool moreItems() { return static_cast<unsigned int>(iter_index) < items.size() - 1 || (iter_index = 0); }
 
 			int getUID() const { return PASSWD_INT_AT(EtcPasswdField::UID); }
 			int getGID() const { return PASSWD_INT_AT(EtcPasswdField::GID); }

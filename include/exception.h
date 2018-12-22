@@ -11,7 +11,7 @@ namespace Ex{
 		try{
 			return fn();
 		}
-		catch(ExType e){
+		catch(ExType& e){
 			logDetail((std::string() + std::string("Exception raised at EVENT[") + message + "]").c_str());
 			logError(e.what());
 			return (decltype(fn()))(nullptr);
