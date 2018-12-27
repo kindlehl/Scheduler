@@ -332,13 +332,17 @@ void Menu::viewMenuItem() {
 		std::string description = std::string("Description: ") + menu_items[selectIndex].description();
 		std::string name = std::string("Name: ") + menu_items[selectIndex].name();
 		std::string m_time_due = std::string("m_time_due: ") + std::to_string(menu_items[selectIndex].m_time_due);
-		std::string time_left = std::string("Time Left: ") + std::to_string(menu_items[selectIndex].timeRemaining());
+		std::string cur_time = std::string("current_time: ") + std::to_string(std::time(NULL));
+		std::string datestring = std::string("dateString: ") + menu_items[selectIndex].datestring();
+		std::string time_left = std::string("Time Left: ") + menu_items[selectIndex].timeRemainingString();
 		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
 		std::string hook_expire = std::string("HOOK_EXPIRE: ") + menu_items[selectIndex].hookExpire();
 
 		addstr(name.c_str()); addstr("\n");
 		addstr(description.c_str()); addstr("\n");
 		addstr(m_time_due.c_str()); addstr("\n");
+		addstr(cur_time.c_str()); addstr("\n");
+		addstr(datestring.c_str()); addstr("\n");
 		addstr(time_left.c_str()); addstr("\n");
 		addstr(time_to_complete.c_str()); addstr("\n");
 		addstr(hook_expire.c_str()); addstr("\n");

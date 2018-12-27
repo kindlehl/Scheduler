@@ -41,6 +41,7 @@ class MenuItem{
 		std::time_t timeToComplete() const;
 		void setTimeToComplete(std::time_t);
 
+		std::string timeRemainingString() const;
 		std::time_t timeRemaining() const;
 		std::time_t time() const;
 		void setTime(std::time_t);

@@ -60,9 +60,34 @@ bool MenuItem::operator<(const MenuItem& m) const {
 
 //returns remaining time in seconds
 std::time_t MenuItem::timeRemaining() const {
-	std::time_t curr;
-	std::time(&curr);
-	return std::difftime(curr, m_time_due);
+	std::time_t curr = std::time(NULL);
+	return std::difftime(m_time_due, curr);
+}
+
+std::string MenuItem::timeRemainingString() const {
+	//seconds until event expires
+	std::time_t seconds = this->timeRemaining();
+
+	std::time_t days = seconds / 86400;
+	seconds -= days * 86400;
+
+	std::time_t hours = seconds / 3600;
+	seconds -= hours * 3600;
+
+	std::time_t minutes = seconds / 60;
+	seconds -= minutes * 60;
+
+	std::time_t s = seconds / 60;
+	seconds -= s ;
+
+	std::ostringstream str;
+
+	str << std::to_string(days) + "d " <<
+	std::to_string(hours) + "h " <<
+	std::to_string(minutes) + "m " <<
+	std::to_string(s) + "s " << std::endl;
+
+	return str.str();
 }
 
 double MenuItem::priority() const {
@@ -178,34 +203,38 @@ std::string MenuItem::timeLeftString() const {
 }
 
 //transforms string in form MM/DD/YY HH:MM to epoch time
-time_t dateToSeconds(std::string datestring) {
+std::time_t dateToSeconds(std::string datestring) {
 	char tmp[3] = {0};
-	struct tm t;
+	struct tm* t = new struct tm;
+	memset(t, 0, sizeof(struct tm));
 
 	//copy month into t
 	strncpy(tmp, datestring.c_str(), 2);
-	t.tm_mon = atoi(tmp) - 1;
+	t->tm_mon = atoi(tmp) - 1;
 	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy day into t
 	strncpy(tmp, datestring.c_str() + 3, 2);
-	t.tm_mday = atoi(tmp);
+	t->tm_mday = atoi(tmp);
 	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy year into t
 	strncpy(tmp, datestring.c_str() + 6, 2);
-	t.tm_year = atoi(tmp) + 100;
+	t->tm_year = atoi(tmp) + 100;
 	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy hour into t
 	strncpy(tmp, datestring.c_str() + 9, 2);
-	t.tm_hour = atoi(tmp);
+	t->tm_hour = atoi(tmp);
 	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy minute into t
 	strncpy(tmp, datestring.c_str() + 12, 2);
-	t.tm_min = atoi(tmp);
+	t->tm_min = atoi(tmp);
 	std::cout << std::stoi(tmp) <<std::endl;
 
-	return mktime(&t);
+	std::time_t temp_time = mktime(t);
+	delete t;
+	
+	return temp_time;
 }
