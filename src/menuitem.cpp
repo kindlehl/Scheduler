@@ -23,10 +23,22 @@ time_t dateToSeconds(std::string datestring);
 MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_name = item->first_node("name")->value(); //extract name	
 	m_description = item->first_node("description")->value(); //extract description
-	m_datestring =  item->first_node("datestring")->value();//extract date
 	m_time_completion =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
 	m_hook_expire =  item->first_node("HOOK_EXPIRE")->value();//extract date
-	m_time_due = dateToSeconds(m_datestring);
+
+	//copy date from xml into seconds since epoch time
+	struct tm* timeval = new struct tm;
+	memset(timeval, 0, sizeof(struct tm));
+	strptime(item->first_node("datestring")->value(), "%m/%d/%y %H:%M", timeval);
+	m_time_due = mktime(timeval);
+
+	char datestring_buffer[100] = {0};
+	//convert m_time_due into a string to represent the formatting
+	strftime(datestring_buffer, 99, "%m/%d/%y %H:%M", timeval);
+	m_datestring = datestring_buffer;
+	
+	delete timeval;
+
 	m_id = numMenus++;
 }
 
@@ -85,7 +97,7 @@ std::string MenuItem::timeRemainingString() const {
 	str << std::to_string(days) + "d " <<
 	std::to_string(hours) + "h " <<
 	std::to_string(minutes) + "m " <<
-	std::to_string(s) + "s " << std::endl;
+	std::to_string(s) + "s ";
 
 	return str.str();
 }
