@@ -253,8 +253,8 @@ void Menu::addItem() {
 		config_xml.allocate_node(rapidxml::node_element, "name", config_xml.allocate_string(responses[NAME].first.c_str())),
 		config_xml.allocate_node(rapidxml::node_element, "description", config_xml.allocate_string(responses[DESCRIPTION].first.c_str())),
 		config_xml.allocate_node(rapidxml::node_element, "datestring", config_xml.allocate_string(responses[DATESTRING].first.c_str())),
-		config_xml.allocate_node(rapidxml::node_element, "completionTime", config_xml.allocate_string(std::to_string(completionTime).c_str())),
-		config_xml.allocate_node(rapidxml::node_element, "HOOK_EXPIRE", config_xml.allocate_string(responses[HOOK_EXPIRE].first.c_str()))
+		config_xml.allocate_node(rapidxml::node_element, "completion_time", config_xml.allocate_string(std::to_string(completionTime).c_str())),
+		config_xml.allocate_node(rapidxml::node_element, "hook_expire", config_xml.allocate_string(responses[HOOK_EXPIRE].first.c_str()))
 	};
 	for(auto node : nodes) {
 		newItem->append_node(node);
@@ -333,8 +333,8 @@ void Menu::viewMenuItem() {
 		std::string description = std::string("Description: ") + menu_items[selectIndex].description();
 		std::string datestring = std::string("Due Date: ") + menu_items[selectIndex].datestring();
 		std::string time_left = std::string("Time Left: ") + menu_items[selectIndex].timeRemainingString();
-		std::string time_to_complete = std::string("Time Needed To Complete: ") + menu_items[selectIndex].timeToCompleteString();
-		std::string hook_expire = std::string("HOOK_EXPIRE: ") + menu_items[selectIndex].hookExpire();
+		std::string time_to_complete = std::string("Time It Will Comsume: ") + menu_items[selectIndex].timeToCompleteString();
+		std::string hook_expire = std::string("Hook on Expire: ") + menu_items[selectIndex].hookExpire();
 
 		addstr(name.c_str()); addstr("\n");
 		addstr(description.c_str()); addstr("\n");
@@ -477,5 +477,4 @@ void expandDateString(std::string& datestring) {
 		second++;
 	}
 }
-
 

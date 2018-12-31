@@ -12,7 +12,7 @@
 #include <ctime>
 #include <fstream>
 #include <exception>
-#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml.h>
 
 class Menu;
 
@@ -57,6 +57,8 @@ class MenuItem{
 		bool m_selected;
 		int m_id;
 		static int numMenus;
+
+		rapidxml::xml_node<>* m_xml_node;
 
 		std::string m_datestring;
 		std::string m_description;

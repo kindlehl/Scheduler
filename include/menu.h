@@ -19,6 +19,9 @@
 #define DATE_SPACING DATE_PORT*(width-USED_SPACE)
 #define DEBUG_SPACING DEBUG_PORT*(width-USED_SPACE)
 
+//Backspace key on some terminals
+#define KEY_BACKSPACE_ALT (127)
+
 #include "menuitem.h"
 #include "exception.h"
 #include <iostream>
@@ -34,9 +37,9 @@
 #include <set>
 #include <regex>
 #include <exception>
-#include <rapidxml/rapidxml.hpp>
-#include <rapidxml/rapidxml_print.hpp>
-#include <rapidxml/rapidxml_utils.hpp>
+#include <rapidxml/rapidxml.h>
+#include <rapidxml/rapidxml_print.h>
+#include <rapidxml/rapidxml_utils.h>
 
 std::time_t createTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);

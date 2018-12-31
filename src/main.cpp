@@ -2,7 +2,7 @@
 #include <curses.h>
 #include <signal.h>
 #include <functional>
-#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml.h>
 #include <sys/stat.h>
 
 #include "../include/menu.h"
@@ -28,7 +28,7 @@ int main(){
 
 	struct stat file_info;
 
-	if(stat(conf_path.c_str(), &file_info)){ //true if config file does not exist
+	if (stat(conf_path.c_str(), &file_info)) { //true if config file does not exist
 		ofstream configFile(conf_path.c_str(), ios::out);
 		//create bare-bones XML file
 		configFile << "<items>\n</items>";
@@ -43,8 +43,9 @@ int main(){
 	Menu mainMenu(conf_path);
 
 	//signal(SIGINT, sigintHandler);
-	while(mainMenu)
+	while (mainMenu) {
 		mainMenu.update();
+	}
 
 	endwin();
 	return 0;
@@ -52,7 +53,7 @@ int main(){
 
 
 //when sigint is received, properly exit the menu;
-void sigintHandler(int sig){
+void sigintHandler(int sig) {
 	Menu::run = false;
 }
 

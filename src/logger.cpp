@@ -3,7 +3,7 @@
 static bool logger_initialized = false;
 void initLog(const char* ident);
 
-void initLog(const char* ident = "Scheduler: "){
+void initLog(const char* ident = "Scheduler: ") {
 	openlog(ident, LOG_INFO, 0);
 	syslog(LOG_ERR | LOG_USER, "Scheduler has been started");
 }
@@ -15,12 +15,12 @@ void checkInit() {
 	}
 }
 
-void logError(const char* message){
+void logError(const char* message) {
 	checkInit();
 	syslog(LOG_ERR | LOG_USER, message);
 }
 
-void logDetail(const char* message){
+void logDetail(const char* message) {
 	checkInit();
 	syslog(LOG_INFO | LOG_USER, message);
 }

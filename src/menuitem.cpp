@@ -1,4 +1,5 @@
 #include "../include/menuitem.h"
+#include <rapidxml/rapidxml.h>
 //definition of numMenus static variable
 int MenuItem::numMenus = 0;
 /* Constructs a MenuItem when given all of its data members
@@ -21,10 +22,12 @@ int MenuItem::numMenus = 0;
 time_t dateToSeconds(std::string datestring);
 
 MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
+	m_xml_node = item;
 	m_name = item->first_node("name")->value(); //extract name	
 	m_description = item->first_node("description")->value(); //extract description
-	m_time_completion =  atoi(item->first_node("completionTime")->value());//extract time until event occurs
-	m_hook_expire =  item->first_node("HOOK_EXPIRE")->value();//extract date
+	m_datestring =  item->first_node("datestring")->value();//extract date
+	m_time_completion =  atoi(item->first_node("completion_time")->value());//extract time until event occurs
+	m_hook_expire =  item->first_node("hook_expire")->value();//extract date
 
 	//copy date from xml into seconds since epoch time
 	struct tm* timeval = new struct tm;
