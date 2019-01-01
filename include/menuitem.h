@@ -17,7 +17,6 @@
 class Menu;
 
 class MenuItem{
-	friend class Menu; //debugging purposes for now
 		
 	public:
 		MenuItem() = delete;
@@ -25,6 +24,7 @@ class MenuItem{
 		MenuItem& operator=(const MenuItem &m);
 		bool operator<(const MenuItem& m) const;
 		explicit MenuItem(rapidxml::xml_node<>* item);
+		~MenuItem() {std::cerr << "Destructing item" << std::endl;}
 
 		bool active() const;
 		void activate();

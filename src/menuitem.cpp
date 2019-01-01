@@ -41,6 +41,7 @@ MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
 	m_datestring = datestring_buffer;
 	
 	delete timeval;
+	timeval = nullptr;
 
 	m_id = numMenus++;
 }
@@ -226,30 +227,26 @@ std::time_t dateToSeconds(std::string datestring) {
 	//copy month into t
 	strncpy(tmp, datestring.c_str(), 2);
 	t->tm_mon = atoi(tmp) - 1;
-	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy day into t
 	strncpy(tmp, datestring.c_str() + 3, 2);
 	t->tm_mday = atoi(tmp);
-	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy year into t
 	strncpy(tmp, datestring.c_str() + 6, 2);
 	t->tm_year = atoi(tmp) + 100;
-	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy hour into t
 	strncpy(tmp, datestring.c_str() + 9, 2);
 	t->tm_hour = atoi(tmp);
-	std::cout << std::stoi(tmp) <<std::endl;
 
 	//copy minute into t
 	strncpy(tmp, datestring.c_str() + 12, 2);
 	t->tm_min = atoi(tmp);
-	std::cout << std::stoi(tmp) <<std::endl;
 
 	std::time_t temp_time = mktime(t);
 	delete t;
+	t = nullptr;
 	
 	return temp_time;
 }

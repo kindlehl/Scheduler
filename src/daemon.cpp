@@ -1,11 +1,6 @@
-#include <unistd.h>
-#include <sys/inotify.h>
-#include <iostream>
-
-#include "../include/logger.h"
-#include "../include/menuitem.h"
 #include "../include/daemon.h"
-#include "../include/profile.h"
+
+int inotify_fd;
 
 int main (int argc, char** argv) {
 	std::string ident = "Scheduled";
@@ -20,7 +15,7 @@ int main (int argc, char** argv) {
 
 	//child process (daemon) now running
 	
-	int inotify_fd = inotify_init(); //initialize inotify subsystem for filesystem events
+	inotify_fd = inotify_init(); //initialize inotify subsystem for filesystem events
 
 	if(inotify_fd == -1) {
 		std::cerr << "Could not initialize inotify subsystem" << std::endl;
@@ -48,17 +43,66 @@ int main (int argc, char** argv) {
 		std::string config_path = std::string(temp_array[int(EtcPasswdField::HOME)]) + "/.schedule";
 
 		if (temp_array[int(EtcPasswdField::HOME)] != "" && stat(config_path.c_str(), &xml_info) == SUCCESS) {
-				std::cout << "[DEBUG] Successfully loaded file: " << config_path << std::endl;
-				users.push_back(Profile(temp_array));
+			std::cerr << "[DEBUG] Successfully loaded file: " << config_path << std::endl;
+			Profile user(temp_array);
+			users.push_back(user);
+			//users.push_back(Profile(temp_array));
+			std::cerr << "[DEBUG] after profile constructor" << std::endl;
 		}
 	}
 
-	////do forever
-	//while(1) {
-		//for(auto& u : users) { //for each profile, check events 
-			//u.handleEvents();
-		//}
-	//}
+	std::vector<int> child_pids;
+
+	//do forever
+	while(1) {
+
+		inotify_event event = checkConfigurationFiles(inotify_fd, users);
+
+		if (event.wd > 0) {
+			std::cerr << "[DEBUG] FOUND EVENT(S)" << std::endl;
+			Profile* changed_profile = findProfileByDescriptor(event.wd, users);
+			if (changed_profile && fileExists(changed_profile->getPath())) {
+				//reload profile
+				changed_profile->clear(); //causes double free :(
+				changed_profile->loadConfiguration();
+			}
+		}
+
+
+		std::cerr << "FIELDS OF EVENT: " << event.wd << " " << event.mask << " " << event.name << std::endl;
+		std::cerr << "[DEBUG] FILE MODIFIED" << std::endl;
+		
+
+		for(auto& u : users) { //for each profile, check events 
+			//returns vector of scripts to execute
+			//std::vector<std::string> scripts = u.handleEvents();
+			
+			int status, pid;
+
+			////if handleEvents returned scripts then run them
+			//if(scripts.size() > 0){
+				//switch(pid) {
+					//case 0: 
+						//execute_scripts(scripts);
+						//break;
+					//case -1:
+						//std::cerr << "Error forking" << std::endl;
+						//break;
+					//default:
+						//child_pids.push_back(pid);
+						//break;
+				//}
+			//}
+
+			//check for dead children
+			for(auto iter = child_pids.begin(); iter != child_pids.end(); iter++) {
+				if (*iter == waitpid(*iter, &status, WNOHANG)) {
+					child_pids.erase(iter);
+				}
+			}
+
+		}
+	}
 
 	return 0;
 }
