@@ -90,15 +90,15 @@ bool fileExists(std::string str) {
 	return true;	
 }
 
-Profile* findProfileByDescriptor (int wd, std::vector<Profile> u) {
+Profile* findProfileByDescriptor (int wd, std::vector<Profile*> u) {
 	for(auto& i : u) {
-		if (i.getWD() == wd) 
-			return &i;
+		if (i->getWD() == wd) 
+			return i;
 	}
 	return NULL;
 }
 
-inotify_event checkConfigurationFiles(int inotify_fd, std::vector<Profile>& profiles) {
+inotify_event checkConfigurationFiles(int inotify_fd, std::vector<Profile*>& profiles) {
 	char buffer[EVENT_SIZE]; //buffer to hold up to 5 inotify events
 	int r = 0;
 

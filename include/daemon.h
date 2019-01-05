@@ -24,8 +24,8 @@ class Profile;
 std::string extract_string(std::istream& file);
 void execute_scripts(std::vector<std::string> scripts);
 bool fileExists(std::string str);
-Profile* findProfileByDescriptor (int wd, std::vector<Profile> u);
-inotify_event checkConfigurationFiles(int inotify_fd, std::vector<Profile>& profiles);
+Profile* findProfileByDescriptor (int wd, std::vector<Profile*> u);
+inotify_event checkConfigurationFiles(int inotify_fd, std::vector<Profile*>& profiles);
 // enum to map failure to -1 and success to 0 for many system calls
 enum error_state {
 	FAILURE = -1,

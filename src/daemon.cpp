@@ -23,7 +23,7 @@ int main (int argc, char** argv) {
 	}
 
 	std::vector<std::pair<rapidxml::xml_document<>* , char* >> all_configs;
-	std::vector<Profile> users;
+	std::vector<Profile*> users;
 	std::ifstream etc_passwd("/etc/passwd");
 	std::string token, line;
 
@@ -44,9 +44,7 @@ int main (int argc, char** argv) {
 
 		if (temp_array[int(EtcPasswdField::HOME)] != "" && stat(config_path.c_str(), &xml_info) == SUCCESS) {
 			std::cerr << "[DEBUG] Successfully loaded file: " << config_path << std::endl;
-			Profile user(temp_array);
-			users.push_back(user);
-			//users.push_back(Profile(temp_array));
+			users.push_back(new Profile(temp_array));
 			std::cerr << "[DEBUG] after profile constructor" << std::endl;
 		}
 	}
@@ -73,35 +71,35 @@ int main (int argc, char** argv) {
 		std::cerr << "[DEBUG] FILE MODIFIED" << std::endl;
 		
 
-		for(auto& u : users) { //for each profile, check events 
+		//for(auto& u : users) { //for each profile, check events 
 			//returns vector of scripts to execute
 			//std::vector<std::string> scripts = u.handleEvents();
 			
-			int status, pid;
+		int status, pid;
 
-			////if handleEvents returned scripts then run them
-			//if(scripts.size() > 0){
-				//switch(pid) {
-					//case 0: 
-						//execute_scripts(scripts);
-						//break;
-					//case -1:
-						//std::cerr << "Error forking" << std::endl;
-						//break;
-					//default:
-						//child_pids.push_back(pid);
-						//break;
-				//}
+		////if handleEvents returned scripts then run them
+		//if(scripts.size() > 0){
+			//switch(pid) {
+				//case 0: 
+					//execute_scripts(scripts);
+					//break;
+				//case -1:
+					//std::cerr << "Error forking" << std::endl;
+					//break;
+				//default:
+					//child_pids.push_back(pid);
+					//break;
 			//}
+		//}
 
-			//check for dead children
-			for(auto iter = child_pids.begin(); iter != child_pids.end(); iter++) {
-				if (*iter == waitpid(*iter, &status, WNOHANG)) {
-					child_pids.erase(iter);
-				}
+		//check for dead children
+		for(auto iter = child_pids.begin(); iter != child_pids.end(); iter++) {
+			if (*iter == waitpid(*iter, &status, WNOHANG)) {
+				child_pids.erase(iter);
 			}
-
 		}
+
+		//}
 	}
 
 	return 0;

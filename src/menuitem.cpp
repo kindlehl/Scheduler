@@ -1,5 +1,6 @@
 #include "../include/menuitem.h"
 #include <rapidxml/rapidxml.h>
+
 //definition of numMenus static variable
 int MenuItem::numMenus = 0;
 /* Constructs a MenuItem when given all of its data members
@@ -21,52 +22,43 @@ int MenuItem::numMenus = 0;
 
 time_t dateToSeconds(std::string datestring);
 
-MenuItem::MenuItem(rapidxml::xml_node<>* item) : m_selected(false){
-	m_xml_node = item;
-	m_name = item->first_node("name")->value(); //extract name	
-	m_description = item->first_node("description")->value(); //extract description
-	m_datestring =  item->first_node("datestring")->value();//extract date
-	m_time_completion =  atoi(item->first_node("completion_time")->value());//extract time until event occurs
-	m_hook_expire =  item->first_node("hook_expire")->value();//extract date
-
+MenuItem::MenuItem(rapidxml::xml_node<>* item) :
+	m_datestring(item->first_node("datestring")->value()), //extract date
+	m_description(item->first_node("description")->value()), //extract description
+	m_hook_expire(item->first_node("hook_expire")->value()), //extract date
+	m_id(numMenus++),
+	m_name(item->first_node("name")->value()), //extract name	
+	m_selected(false),
+	m_time_completion(atoi(item->first_node("completion_time")->value())) //extract time until event occurs
+{
 	//copy date from xml into seconds since epoch time
-	struct tm* timeval = new struct tm;
-	memset(timeval, 0, sizeof(struct tm));
-	strptime(item->first_node("datestring")->value(), "%m/%d/%y %H:%M", timeval);
-	m_time_due = mktime(timeval);
-
-	char datestring_buffer[100] = {0};
-	//convert m_time_due into a string to represent the formatting
-	strftime(datestring_buffer, 99, "%m/%d/%y %H:%M", timeval);
-	m_datestring = datestring_buffer;
-	
-	delete timeval;
-	timeval = nullptr;
-
-	m_id = numMenus++;
+	struct tm timeval;
+	memset(&timeval, 0, sizeof(struct tm));
+	strptime(item->first_node("datestring")->value(), "%m/%d/%y %H:%M", &timeval);
+	m_time_due = mktime(&timeval);
 }
 
 MenuItem::MenuItem(const MenuItem &m) : 
-	m_id(m.m_id),
-	m_selected(m.m_selected),
 	m_datestring(m.m_datestring),
 	m_description(m.m_description),
+	m_hook_expire(m.m_hook_expire),
+	m_id(m.m_id),
 	m_name(m.m_name),
-	m_time_due(m.m_time_due),
+	m_selected(m.m_selected),
 	m_time_completion(m.m_time_completion),
-	m_hook_expire(m.m_hook_expire)
+	m_time_due(m.m_time_due)
 {
 } 
 
 MenuItem& MenuItem::operator=(const MenuItem &m){
-	//this temp variable allows self-copying
-	MenuItem tempItem(m);
-	this->m_time_due = tempItem.m_time_due;
-	this->m_time_completion = tempItem.m_time_completion;
-	this->m_datestring = tempItem.datestring();
-	this->m_name = tempItem.m_name;
-	this->m_description = tempItem.m_description;
-	this->m_hook_expire = tempItem.m_hook_expire;
+	this->m_datestring = m.datestring();
+	this->m_description = m.m_description;
+	this->m_hook_expire = m.m_hook_expire;
+	this->m_id = m.m_id;
+	this->m_name = m.m_name;
+	this->m_selected = m.m_selected;
+	this->m_time_completion = m.m_time_completion;
+	this->m_time_due = m.m_time_due;
 	return *this;
 }
 
@@ -221,32 +213,28 @@ std::string MenuItem::timeLeftString() const {
 //transforms string in form MM/DD/YY HH:MM to epoch time
 std::time_t dateToSeconds(std::string datestring) {
 	char tmp[3] = {0};
-	struct tm* t = new struct tm;
-	memset(t, 0, sizeof(struct tm));
+	struct tm t;
+	memset(&t, 0, sizeof(struct tm));
 
 	//copy month into t
 	strncpy(tmp, datestring.c_str(), 2);
-	t->tm_mon = atoi(tmp) - 1;
+	t.tm_mon = atoi(tmp) - 1;
 
 	//copy day into t
 	strncpy(tmp, datestring.c_str() + 3, 2);
-	t->tm_mday = atoi(tmp);
+	t.tm_mday = atoi(tmp);
 
 	//copy year into t
 	strncpy(tmp, datestring.c_str() + 6, 2);
-	t->tm_year = atoi(tmp) + 100;
+	t.tm_year = atoi(tmp) + 100;
 
 	//copy hour into t
 	strncpy(tmp, datestring.c_str() + 9, 2);
-	t->tm_hour = atoi(tmp);
+	t.tm_hour = atoi(tmp);
 
 	//copy minute into t
 	strncpy(tmp, datestring.c_str() + 12, 2);
-	t->tm_min = atoi(tmp);
+	t.tm_min = atoi(tmp);
 
-	std::time_t temp_time = mktime(t);
-	delete t;
-	t = nullptr;
-	
-	return temp_time;
+	return mktime(&t);
 }

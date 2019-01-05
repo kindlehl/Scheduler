@@ -1,7 +1,7 @@
 ALL_OBJECTS=$(wildcard *.o)
 NAME=scheduler
 DAEMON_NAME=scheduled
-CC=g++ -g -std=c++17
+CC=g++ -g -std=c++14
 CXX_FLAGS= -pedantic -Wall -fpermissive -Wno-reorder
 
 

@@ -28,7 +28,10 @@ enum class EtcPasswdField {
 class Profile{
 	public:
 			Profile() = delete;
-			explicit Profile(std::array<std::string, 7> etc_passwd_fields);
+			Profile(std::array<std::string, 7> etc_passwd_fields);
+			Profile(const Profile&) = delete;
+			Profile& operator=(const Profile&) = delete;
+			~Profile() {}
 
 			void loadConfiguration();
 			void clear();
@@ -47,9 +50,6 @@ class Profile{
 			std::string getShell() const { return PASSWD_STR_AT(EtcPasswdField::SHELL); }
 			std::string getPath() const { return PASSWD_STR_AT(EtcPasswdField::HOME) + "/.schedule"; }
 			int getWD() const { return inotify_wd; }
-
-
-			~Profile() {}
 	private:
 			int iter_index = 0, inotify_wd = 0;
 			std::array<std::string, 7> passwd;

@@ -16,7 +16,7 @@
 
 class Menu;
 
-class MenuItem{
+class MenuItem {
 		
 	public:
 		MenuItem() = delete;
@@ -57,8 +57,6 @@ class MenuItem{
 		bool m_selected;
 		int m_id;
 		static int numMenus;
-
-		rapidxml::xml_node<>* m_xml_node;
 
 		std::string m_datestring;
 		std::string m_description;

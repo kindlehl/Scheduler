@@ -49,6 +49,7 @@ void Profile::clear() {
 	//erase each item in the collection
 	items.clear(); //causes double free somehow
 	iter_index = 0;
+	
 	//free memory associated with old xml file
 	xml_structure->clear();
 	xml_content = nullptr; //nullify content string since its memory is invalidated after freeing xml_structure
@@ -66,7 +67,7 @@ Profile::Profile(std::array<std::string, 7> passwd_array){
 	//needs to be updated. When it is deleted, its associated profile
 	//needs to be deleted since the user no longers has a configuration
 	std::cerr << "Before waiting function" << std::endl;
-	inotify_wd = inotify_add_watch(inotify_fd, this->getPath().c_str(), IN_MODIFY | IN_DELETE_SELF);
+	inotify_wd = inotify_add_watch(inotify_fd, this->getPath().c_str(), IN_MODIFY);
 	std::cerr << "After waiting function" << std::endl;
 }
 
