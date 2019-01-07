@@ -5,13 +5,13 @@
 #include <rapidxml/rapidxml.h>
 #include <sys/stat.h>
 
+#include "../include/globals.h"
 #include "../include/menu.h"
+#include "../include/help.h"
 #include "../include/logger.h"
 
 using namespace std;
 
-string homedir;
-string conf_path;
 char* config_text;
 
 rapidxml::xml_document<> config_xml;
@@ -22,18 +22,8 @@ void sigintHandler(int);
 
 
 int main(){
-	//initialize global paths
-	homedir = string(getenv("HOME"));
-    conf_path = homedir + "/.schedule";
-
-	struct stat file_info;
-
-	if (stat(conf_path.c_str(), &file_info)) { //true if config file does not exist
-		ofstream configFile(conf_path.c_str(), ios::out);
-		//create bare-bones XML file
-		configFile << "<items>\n</items>";
-		configFile.close();
-	}
+	//initialize configuration folder
+	setupFolderStructure();
 
 	initscr();	
 	noecho();
@@ -50,7 +40,6 @@ int main(){
 	endwin();
 	return 0;
 }
-
 
 //when sigint is received, properly exit the menu;
 void sigintHandler(int sig) {
