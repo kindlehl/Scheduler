@@ -1,8 +1,4 @@
-#ifndef HELP_H
-#define HELP_H
-
-#include "../include/daemon.h"
-class Profile;
+#include "../include/help.h"
 
 std::string extract_string(std::istream& file){
 	std::string contents, line;
@@ -27,20 +23,21 @@ void execute_scripts(std::vector<std::string> scripts) {
 	for(auto& s : scripts) {
 		int pid = fork();
 		switch(pid) {
-			case -1:
+			case -1: {
 				//error forking process
 				std::cerr << "Error forking in execute_scripts" << std::endl;
 				exit(1);
 				break;
-			case 0:
+			}
+			case 0: {
 				//Create command line argument array of '/bin/bash <path/to/script>'
-				char* args[3];
-				args[0] = "/bin/bash";
-				args[1] = s.c_str();
-				args[2] = nullptr;
+				char* args[3] = {new char[strlen("/bin/bash") + 1], new char[s.length() + 1], nullptr};
+				strcpy(args[0], "/bin/bash");
+				strcpy(args[1], s.c_str());
 				//replace current (child) process with bash execution context
 				execv(args[0], args);
 				break;
+			}
 			default:
 				//add child PID to array to check with wait()
 				child_pids.push_back(pid);
@@ -90,36 +87,43 @@ bool fileExists(std::string str) {
 	return true;	
 }
 
-Profile* findProfileByDescriptor (int wd, std::vector<Profile*> u) {
-	for(auto& i : u) {
-		if (i->getWD() == wd) 
-			return i;
-	}
-	return NULL;
-}
+void setupFolderStructure() {
+	umask(0000); //clear process umask. Child processes inherit.
 
-inotify_event checkConfigurationFiles(int inotify_fd, std::vector<Profile*>& profiles) {
-	char buffer[EVENT_SIZE]; //buffer to hold up to 5 inotify events
-	int r = 0;
+	//Initialize global paths
+	homedir = std::string(getenv("HOME"));
+    conf_dir = homedir + "/.scheduler";
+    conf_path = conf_dir + "/.schedule";
 
-	do {
-		//read events into buffer
-		r += read(inotify_fd, buffer, EVENT_SIZE - r);
-		if (r > 0) {
-			std::cerr << "In reading loop for event" << std::endl;
+	struct stat cdir, xml_file;
+	int cdir_status, xml_file_status;
+
+	cdir_status = stat(conf_dir.c_str(), &cdir); //stat user's conf_dir 
+
+	if (cdir_status == -1) {
+		// if the error is that the folder simply doesn't exist
+		if (errno == ENOENT) {
+			// create folder for user
+			mkdir(conf_dir.c_str(), 00755); // rwxr-xr-x
+		} else { // something horrible has gone wrong, abort
+			perror(errno);
+			exit(3);
 		}
-	} while(r != EVENT_SIZE && r > 0); //while read doesn't read an integer number of events
-
-	struct inotify_event event;	
-	event.wd = 0; //this will stay 0 if there are no events
-
-	if(r){
-		//move buffer into inotify event
-		memmove(&event, buffer, EVENT_SIZE); 
 	}
 
-	//return all events found
-	return event;
-}
+	xml_file_status = stat(conf_path.c_str(), &xml_file); //stat user's conf_dir 
 
-#endif
+	if (xml_file_status == -1) {
+		// if the error is that the file does not exist
+		if (errno == ENOENT) {
+			// create base xml file for user
+			std::ofstream configFile(conf_path.c_str(), std::ios::out);
+			configFile << "<items>\n</items>";
+			configFile.close();
+			
+			//change mode since I don't trust user's umask since
+			//idiots like me think its a good idea to change it
+			chmod(conf_path.c_str(), 00644); // rw-r--r--
+		}
+	}
+}
