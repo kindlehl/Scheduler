@@ -14,3 +14,4 @@ projectLog
 
 .clang_complete
 Scheduler
+.ycm_extra_conf.py
