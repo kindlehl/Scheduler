@@ -1,7 +1,6 @@
 #ifndef MENUITEM_H
 #define MENUITEM_H
 
-
 #include <string>
 #include <cstdlib>
 #include <regex>
@@ -14,7 +13,7 @@
 #include <exception>
 #include <rapidxml/rapidxml.h>
 
-class Menu;
+#define S_EXPIRE "HOOK"
 
 class MenuItem {
 		
