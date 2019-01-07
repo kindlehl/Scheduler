@@ -186,7 +186,7 @@ enum FieldMatches {
 
 void Menu::addItem() {
 	curs_set(1);	
-	const std::string path = homedir + "/.schedule_add";
+	const std::string path = homedir + "/.scheduler/.schedule_add";
 	scr_dump(path.c_str());
 	std::smatch matches;
 	std::regex match_anything (".*"); //matches anything and everything
@@ -324,7 +324,7 @@ void Menu::remove() {
 //into a file, then restores the file after the user does not want to view the event anymore.
 void Menu::viewMenuItem() {
 	//save screen to file and clear window
-	scr_dump((homedir + "/.schedule_dump").c_str());
+	scr_dump((homedir + "/.scheduler/.schedule_dump").c_str());
 
 	do{
 		clearScreen();
@@ -350,7 +350,7 @@ void Menu::viewMenuItem() {
 	} while(getch() != 'q');
 
 	clearScreen();
-	scr_restore((homedir + "/.schedule_dump").c_str());
+	scr_restore((homedir + "/scheduler/.schedule_dump").c_str());
 }
 
 //this function is called when destructing a menu and when a signal is caught.
