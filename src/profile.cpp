@@ -1,5 +1,46 @@
 #include "../include/profile.h"
 
+Profile* findProfileByDescriptor (int wd, std::vector<Profile*> u) {
+	for(auto& i : u) {
+		if (i->getWD() == wd) 
+			return i;
+	}
+	return NULL;
+}
+
+//checks primary inotify instance for events
+std::vector<inotify_event*> checkConfigurationFiles(int inotify_fd) {
+	struct inotify_event* buffer = (struct inotify_event*)calloc(4 * EVENT_SIZE, 1);
+
+	if (buffer == NULL) {
+		std::cerr << "Could not allocate memory for event" << std::endl;
+		exit(4);
+	}
+
+	int bytes_read;
+	bytes_read = read(inotify_fd, buffer, 4 * EVENT_SIZE);//sizeof(struct inotify_event));
+
+	std::vector<inotify_event*> events;
+
+	if (bytes_read > 0) {
+		for(inotify_event* i = buffer; i < buffer + bytes_read; i += sizeof(inotify_event) + i->len) {
+			if (i->wd == 0) {
+				continue; //skip bogus file events
+			}
+			//move event into separate buffer to allow a single event to be freed.
+			//If I add pointers in the center of buffer to the vector, only the first 
+			//pointer could be freed. Now each pointer shall be freed to prevent confusion
+			inotify_event* new_event_buffer = (inotify_event*)calloc(EVENT_SIZE, 1);
+			memcpy(new_event_buffer, i, sizeof(inotify_event) + i->len);
+			events.push_back(new_event_buffer);
+			std::cerr << "[Debug] Found a(nother) event" << std::endl;
+		}
+	} 
+
+	free(buffer);
+	return events;
+}
+
 //need to figure out how i want to copy items since they hold pointers to valid resources. Should probs use shared ptrs
 //NOT SURE WHAT ABOVE COMMENT MEANS, BUT CP CONSTRUCTOR WAS BLOCKING FOR SOME REASON
 //Profile::Profile(const Profile& cp){
@@ -9,6 +50,7 @@
 
 void Profile::loadConfiguration() {
 	//open file
+	inotify_rm_watch(inotify_fd, inotify_wd); //remove watch temporarily
 	std::ifstream xml_file(this->getPath());
 
 	if(!xml_file) {
@@ -43,6 +85,8 @@ void Profile::loadConfiguration() {
 		std::cerr << "[DEBUG] After MenuItem constructor" << std::endl;
 		child = child->next_sibling(); //move to next item
 	}
+
+	inotify_wd = inotify_add_watch(inotify_fd, this->getDir().c_str(), INOTIF_OPTS); //re-add watch
 }
 
 void Profile::clear() {
@@ -66,14 +110,11 @@ Profile::Profile(std::array<std::string, 7> passwd_array){
 	//when a configuration file is modified, its associated profile
 	//needs to be updated. When it is deleted, its associated profile
 	//needs to be deleted since the user no longers has a configuration
-	std::cerr << "Before waiting function" << std::endl;
-	inotify_wd = inotify_add_watch(inotify_fd, this->getPath().c_str(), IN_MODIFY);
-	std::cerr << "After waiting function" << std::endl;
+	inotify_wd = inotify_add_watch(inotify_fd, this->getDir().c_str(), INOTIF_OPTS);
 }
 
-//disabled since it is invoked when pushing temporary values into vector, which invalidates the copy in the vector
-//Profile::~Profile() {
+Profile::~Profile() {
 	//remove inotify watch for this profile
-	//inotify_rm_watch(inotify_fd, this->inotify_wd);
-	//clear(); //deletes xml_structure and the xml_contents which was associated with the xml configuration
-//}
+	inotify_rm_watch(inotify_fd, this->inotify_wd);
+	clear(); //deletes xml_structure and the xml_contents which was associated with the xml configuration
+}
