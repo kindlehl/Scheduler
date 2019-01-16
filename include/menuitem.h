@@ -11,7 +11,7 @@
 #include <ctime>
 #include <fstream>
 #include <exception>
-#include <rapidxml/rapidxml.h>
+#include <rapidxml/rapidxml.hpp>
 
 #define S_EXPIRE "HOOK"
 

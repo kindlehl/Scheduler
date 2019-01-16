@@ -2,7 +2,7 @@
 #include <curses.h>
 #include <signal.h>
 #include <functional>
-#include <rapidxml/rapidxml.h>
+#include <rapidxml/rapidxml.hpp>
 #include <sys/stat.h>
 
 #include "../include/globals.h"

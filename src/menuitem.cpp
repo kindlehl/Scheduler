@@ -1,5 +1,4 @@
 #include "../include/menuitem.h"
-#include <rapidxml/rapidxml.h>
 
 //definition of numMenus static variable
 int MenuItem::numMenus = 0;

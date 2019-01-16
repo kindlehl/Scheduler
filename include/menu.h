@@ -37,9 +37,9 @@
 #include <set>
 #include <regex>
 #include <exception>
-#include <rapidxml/rapidxml.h>
-#include <rapidxml/rapidxml_print.h>
-#include <rapidxml/rapidxml_utils.h>
+#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml_print.hpp>
+#include <rapidxml/rapidxml_utils.hpp>
 
 std::time_t createTime(std::string& s, std::string regexp);
 void expandDateString(std::string& datestring);
